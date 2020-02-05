@@ -13,7 +13,7 @@ to comprehend the material flows that lead to a specific accumulation and the
 uncertainty about it.
 """
 
-import components as cp
+from . import components as cp
 import numpy.random as nr
 
 
@@ -208,4 +208,4 @@ class Model(object):
 
         if not self.inflows:
             print('No model inflow defined!')
-        print 'model valitity checked'
+        print('model valitity checked')

@@ -9,7 +9,7 @@ Probabilistic Material Flow Model. To represent the system, the model elements
 need to be parametrized to fit the specific system behavior.
 """
 import numpy as np
-
+from functools import reduce
 
 
 class Compartment(object):
@@ -640,7 +640,8 @@ class ExternalListInflow(ExternalInflow):
         self.inflowList = inflowList
         
         for i in range(len(self.inflowList)):            
-            if isinstance(self.inflowList[i], (int, long, float, list)):
+            #!port long doesn't exist in python 3
+            if isinstance(self.inflowList[i], (int, float, list)):
 #                self.inflowList[i] = SinglePeriodInflow(self.inflowList[i])
                 self.inflowList[i] = FixedValueInflow(self.inflowList[i])
 
