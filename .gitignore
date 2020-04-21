@@ -1,0 +1,4 @@
+htmlcov/
+*.swp
+bak/
+__pycache__/
