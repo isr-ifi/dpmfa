@@ -1,1 +1,8 @@
 pre-commit==2.3.0
+pytest
+pytest-cov
+pytest-pep8
+pytest-html
+pytest-xdist
+pytest-flask
+pep8
