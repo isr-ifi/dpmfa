@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Tue Mar 04 17:22:50 2014
 
@@ -39,7 +39,7 @@ class Simulator(object):
         up to one. This Parameter is only considered, if the global parameter\
         for normalization is used.
     """
-    
+
     def __init__(self, runs, periods, seed = None, useGlobalTCSettings = True, normalizeTCs = True):
         self.numRuns = runs
         self.numPeriods = periods
@@ -75,7 +75,7 @@ class Simulator(object):
             if type(comp) is cp.Stock:
                 self.stocks.append(comp)
                 comp.updateImmediateReleaseRate()
-        
+
     def runSimulation(self):
         """ performs the simulation on the model with regard to the given
         parameters
@@ -145,7 +145,7 @@ class Simulator(object):
         print('')
         print('Simulation complete')
         print('')
-        
+
     def getAllStockedMaterial(self):
         '''
         returns a dictionary of all sinks and stocks and the matrices of the
@@ -155,7 +155,7 @@ class Simulator(object):
         for sink in self.sinks:
             inventories[sink.name]= sink.inventory
         return inventories
-    
+
     def getLoggedInflows(self):
         '''
         returns a dictionary of all compartments and logged inflow matrices
@@ -165,7 +165,7 @@ class Simulator(object):
             if comp.logInflows:
                 inflows[comp.name]= comp.inflowRecord
         return inflows
-    
+
     def getLoggedTotalOutflows(self):
         '''
         gives absolulte outflows from each compartments (if logged)
@@ -178,7 +178,7 @@ class Simulator(object):
                     outflowSum.append(comp.outflowRecord[outflow])
                 outflows[comp.name]=sum(outflowSum)
         return outflows
-    
+
     def getLoggedFlows(self):
         '''
         returns matrices for all flows in between compartments (dictionary of dictionaries)
@@ -189,7 +189,7 @@ class Simulator(object):
                 allFlows[comp.name]= comp.outflowRecord
 
         return allFlows
-    
+
     def getImmediateFlowsFromAllStocks(self):
         '''
         returns all immediate flows from stocks
@@ -200,7 +200,7 @@ class Simulator(object):
         for stock in immediateStocks:
             allFlows[stock]=stock.immediateFlowRecord
         return allFlows
-    
+
     def getLoggedCategoryStock(self, category):
         '''
         return the summed up inventory for all sinks and stocks of a category
@@ -211,7 +211,7 @@ class Simulator(object):
         for stock in catStocks:
             combinedInventory.append(stock.inventory)
         return sum(combinedInventory)
-    
+
     def getLoggedCategoryInflows(self, category):
         '''
         returns the summed up inflow to the compartments of a category
@@ -221,7 +221,7 @@ class Simulator(object):
         for catComp in catCompartments:
             loggedInflows.append(catComp.inflowRecord)
         return sum(loggedInflows)
-    
+
     def getLoggedCategoryOutflowSum(self, category):
         '''
         returns a matrix of the sums of the outflows from all the compartments of the category to all
@@ -233,7 +233,7 @@ class Simulator(object):
             for name in catFlow.outflowRecord:
                 allOutflows.append(catFlow.outflowRecord[name])
         return sum(allOutflows)
-    
+
     def getLoggedCategoryOutflows(self, category):
         '''
         returns the outflows of all comparmtents of a category to all subsequent compartments
@@ -247,7 +247,7 @@ class Simulator(object):
                 else:
                     allFlows[name]= flow.outflowRecord[name]
         return allFlows
-    
+
     def getCategoryImmediateFlowFromStockSum(self, category):
         '''
         returns a matrix of the sum of all immediate outflows from stocks of a category
@@ -259,13 +259,13 @@ class Simulator(object):
                 totalImmediateFlow.append(stock.immediateFlowRecord[rec])
 
         return sum(totalImmediateFlow)
-    
+
     def getCompartmentsOfCategory(self, category):
         '''
         returns all compartments of one category
         '''
         return [c for c in self.compartments if category in c.categories]
-    
+
     def getCombinedOutflows(self, compartmentList):
         """
         returns a combined dictonary of the outflows of a list of compartments
@@ -279,10 +279,10 @@ class Simulator(object):
                     combinedOutflow[name] = comp.outflowRecord[name]
 
         return combinedOutflow
-    
+
     def getCurrentPeriod(self):
         return self.current_period
-    
+
     def getSinks(self):
         """
         returns all Sinks of the model.
@@ -306,20 +306,20 @@ class Simulator(object):
         returns a list of all flow compartments
         """
         return self.flowCompartments
-    
+
     def getLoggedOutflows(self):
         """
         returns a list of all flowCompartments that log outflows
         """
         loggedOutflows = [comp for comp in self.flowCompartments if comp.logOutflows]
         return loggedOutflows
-    
+
     def getCategories(self):
         '''
         category list of the model
         '''
         return self.model.categoriesList
-    
+
     def getCompartment(self, name):
         '''
         return a specific compartment for the given name
