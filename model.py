@@ -19,7 +19,6 @@ from . import components as cp
 import numpy.random as nr
 
 
-
 class Model(object):
     """The Model represents the original system as a set of Compartment, flows
     as relative dependencies between the copmartments and absolute, periodic
@@ -51,12 +50,12 @@ class Model(object):
         if all(isinstance(comp, cp.Compartment) for comp in compartments):
             self.compartments = compartments
         else:
-            print('invalid compartment list!')
+            print("invalid compartment list!")
 
         if all(isinstance(inflow, cp.ExternalInflow) for inflow in inflows):
             self.inflows = inflows
         else:
-            print('invalid inflow list!')
+            print("invalid inflow list!")
 
         self.seed = 1
         self.categoriesList = []
@@ -74,7 +73,7 @@ class Model(object):
         if all(isinstance(comp, cp.Compartment) for comp in compartmentList):
             self.compartments = compartmentList
         else:
-            print('invalid compartment list!')
+            print("invalid compartment list!")
 
     def addCompartment(self, compartment):
         """
@@ -85,7 +84,7 @@ class Model(object):
         ----------------
         compartment: component.Compartment
         """
-        if(isinstance(compartment, cp.Compartment)):
+        if isinstance(compartment, cp.Compartment):
             self.compartments.append(compartment)
 
     def setInflows(self, inflowList):
@@ -100,7 +99,7 @@ class Model(object):
         if all(isinstance(inflow, cp.ExternalInflow) for inflow in inflowList):
             self.inflows = inflowList
         else:
-            print('invalid inflow list!')
+            print("invalid inflow list!")
 
     def addInflow(self, inflow):
         """
@@ -112,21 +111,21 @@ class Model(object):
             an external source
         """
 
-        if(isinstance(inflow, cp.ExternalInflow)):
+        if isinstance(inflow, cp.ExternalInflow):
             self.inflows.append(inflow)
         else:
-            print('not an external inflow')
+            print("not an external inflow")
 
     def updateCompartmentCategories(self):
-        '''
+        """
         updates the category list of the model to contain all compartments
         categories
-        '''
+        """
 
         newCatList = []
         for comp in self.compartments:
             newCatList += comp.categories
-        self.categoriesList  = list(set(newCatList))
+        self.categoriesList = list(set(newCatList))
 
     def getCategoriesList(self):
         return self.categoriesList
@@ -156,10 +155,13 @@ class Model(object):
             transfer to be added
         """
         if isinstance(transfer, cp.Transfer):
-            compartment = next((comp for comp in self.compartments if comp.name == compartmentName), None)
+            compartment = next(
+                (comp for comp in self.compartments if comp.name == compartmentName),
+                None,
+            )
             compartment.transfers.append(transfer)
         else:
-            print('not a transfer')
+            print("not a transfer")
 
     def setReleaseStrategy(self, stockName, releaseStrategy):
         """
@@ -174,11 +176,13 @@ class Model(object):
             the release strategy
 
         """
-        stock = next((comp for comp in self.compartments if comp.name == stockName), None)
-        if (stock !=None):
+        stock = next(
+            (comp for comp in self.compartments if comp.name == stockName), None
+        )
+        if stock != None:
             stock.releaseStrategy = releaseStrategy
         else:
-            print('no such stock: '+ str(stockName))
+            print("no such stock: " + str(stockName))
 
     def checkModelValidity(self):
         """
@@ -190,16 +194,15 @@ class Model(object):
             if isinstance(comp, cp.FlowCompartment):
                 transferList = comp.transfers
                 if not transferList:
-                    print('Err: no transfers assined in ' + str(comp.name))
+                    print("Err: no transfers assined in " + str(comp.name))
                 for trans in transferList:
                     if not isinstance(trans, cp.Transfer):
-                        print('invalid transfer')
+                        print("invalid transfer")
 
             if isinstance(comp, cp.Stock):
                 release = comp.localRelease
                 if not isinstance(release, cp.LocalRelease):
-                    print('local release from stock not assigned')
+                    print("local release from stock not assigned")
 
         if not self.inflows:
-            print('No model inflow defined!')
-
+            print("No model inflow defined!")

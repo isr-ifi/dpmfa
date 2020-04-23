@@ -25,8 +25,9 @@ class Compartment(object):
     To use a Compartment, please instantiate its subclasses FlowComp, Sink, and
     Stock.
     """
+
     def __init__(self, name, logInflows, categories):
-        self.compNumber = 'not defined'
+        self.compNumber = "not defined"
         self.name = name
         self.logInflows = logInflows
         self.categories = categories
@@ -35,6 +36,7 @@ class Compartment(object):
     inits a matrix to log the material inflows for all simulation runs and
     periods
     """
+
     def initFlowLog(self, runs, periods):
         """
         if flow record is set, a matrix is initialized to log all flows to the
@@ -49,7 +51,6 @@ class Compartment(object):
         """
         if self.logInflows:
             self.inflowRecord[run, period] = amt
-
 
 
 class FlowCompartment(Compartment):
@@ -71,7 +72,15 @@ class FlowCompartment(Compartment):
         defined a list of categories the stock is part of (for later evaluation)
     """
 
-    def __init__(self, name, transfers= [], logInflows = False, logOutflows = False, adjustOutgoingTCs = True, categories = []):
+    def __init__(
+        self,
+        name,
+        transfers=[],
+        logInflows=False,
+        logOutflows=False,
+        adjustOutgoingTCs=True,
+        categories=[],
+    ):
 
         super(FlowCompartment, self).__init__(name, logInflows, categories)
         self.transfers = transfers
@@ -126,11 +135,11 @@ class FlowCompartment(Compartment):
         logs the inflow to the compartment
         """
         if self.logInflows:
-            self.inflowRecord[run, period]= amt
+            self.inflowRecord[run, period] = amt
 
         if self.logOutflows:
             for t in self.transfers:
-                self.outflowRecord[t.target.name][run, period] = t.getCurrentTC()*amt
+                self.outflowRecord[t.target.name][run, period] = t.getCurrentTC() * amt
 
     def adjustTCs(self):
         """ Adjusts TCs outgoing from one compartment to sum up to one.
@@ -142,9 +151,11 @@ class FlowCompartment(Compartment):
         tcSum = sum(t.currentTC for t in self.transfers)
         currentPriority = min(t.priority for t in self.transfers)
 
-        while round(tcSum,6)!=1:
+        while round(tcSum, 6) != 1:
 
-            adjustableTransfers = [t for t in self.transfers if t.priority == currentPriority]
+            adjustableTransfers = [
+                t for t in self.transfers if t.priority == currentPriority
+            ]
             adjustableTCs = [t.currentTC for t in adjustableTransfers]
 
             currentAdjustSum = sum(adjustableTCs)
@@ -152,22 +163,21 @@ class FlowCompartment(Compartment):
             changedTCs = self.__normListSumTo(adjustableTCs, normToValue)
 
             for i in range(len(changedTCs)):
-                    adjustableTransfers[i].currentTC = changedTCs[i]
+                adjustableTransfers[i].currentTC = changedTCs[i]
 
             tcSum = sum(t.currentTC for t in self.transfers)
             tcSum = round(tcSum, 6)
             currentPriority = currentPriority + 1
 
     def __normListSumTo(self, L, sumTo=1):
-        '''normalize values of a list to a certain value'''
+        """normalize values of a list to a certain value"""
 
-        sum = reduce(lambda x,y:x+y, L)
+        sum = reduce(lambda x, y: x + y, L)
 
         if sum == 0:
             return [0 for x in L]
 
-        return [ x/(sum*1.0)*sumTo for x in L]
-
+        return [x / (sum * 1.0) * sumTo for x in L]
 
 
 class Sink(Compartment):
@@ -184,7 +194,7 @@ class Sink(Compartment):
 
     """
 
-    def __init__(self, name, logInflows = False, categories = []):
+    def __init__(self, name, logInflows=False, categories=[]):
         super(Sink, self).__init__(name, logInflows, categories)
 
     def initInventory(self, runs, periods):
@@ -194,13 +204,12 @@ class Sink(Compartment):
         """ transfers the stored amount from the end of a period to the
         beginning of the next one.
         """
-        if (period != 0):
-            self.inventory[run, period] = self.inventory[run, period -1]
+        if period != 0:
+            self.inventory[run, period] = self.inventory[run, period - 1]
 
     def storeMaterial(self, run, period, amount):
         """ increases the stored amount by an accumulated inflow"""
         self.inventory[run, period] = self.inventory[run, period] + amount
-
 
 
 class Stock(FlowCompartment, Sink):
@@ -224,7 +233,17 @@ class Stock(FlowCompartment, Sink):
         defined a list of categories the stock is part of (for later evaluation)
 
     """
-    def __init__(self, name, transfers=[], localRelease = 0, logInflows = False, logOutflows = False, logImmediateFlows = False, categories = []):
+
+    def __init__(
+        self,
+        name,
+        transfers=[],
+        localRelease=0,
+        logInflows=False,
+        logOutflows=False,
+        logImmediateFlows=False,
+        categories=[],
+    ):
         super(Stock, self).__init__(name, transfers, logInflows, categories)
         self.localRelease = localRelease
         self.logOutflows = logOutflows
@@ -249,23 +268,29 @@ class Stock(FlowCompartment, Sink):
         logs the inflow to the compartment
         """
         if self.logInflows:
-            self.inflowRecord[run, period]= amt
+            self.inflowRecord[run, period] = amt
 
         if self.logOutflows:
             for t in self.transfers:
-                self.outflowRecord[t.target.name][run, period] = \
-                self.outflowRecord[t.target.name][run, period] + t.getCurrentTC()*amt * self.immediateReleaseRate
+                self.outflowRecord[t.target.name][run, period] = (
+                    self.outflowRecord[t.target.name][run, period]
+                    + t.getCurrentTC() * amt * self.immediateReleaseRate
+                )
 
         if self.logImmediateFlows:
             for t in self.transfers:
-                self.immediateFlowRecord[t.target.name][run, period] = t.getCurrentTC()*amt * self.immediateReleaseRate
+                self.immediateFlowRecord[t.target.name][run, period] = (
+                    t.getCurrentTC() * amt * self.immediateReleaseRate
+                )
 
     def storeMaterial(self, run, period, amount):
         """ stores material and schedules future release according to the
         release strategy of the stock
         """
 
-        self.inventory[run, period] = self.inventory[run, period] + amount*(1-self.immediateReleaseRate)
+        self.inventory[run, period] = self.inventory[run, period] + amount * (
+            1 - self.immediateReleaseRate
+        )
         self.localRelease.scheduleFutureRelease(run, period, amount)
 
     def releaseMaterial(self, run, period):
@@ -279,35 +304,39 @@ class Stock(FlowCompartment, Sink):
         self.inventory[run, period] = self.inventory[run, period] - releaseAmt
         releases = {}
         for trans in self.transfers:
-            releases[trans.target]=trans.getCurrentTC()*releaseAmt
+            releases[trans.target] = trans.getCurrentTC() * releaseAmt
             if self.logOutflows:
-                self.outflowRecord[trans.target.name][run, period] = releases[trans.target]
+                self.outflowRecord[trans.target.name][run, period] = releases[
+                    trans.target
+                ]
 
         return releases
-
 
 
 class LocalRelease(object):
     """ Describes after what period how much of the material stored is released
     from stock. To use, implement subclasses.
     """
+
     def __init__(self):
         self.releaseList = 0
 
     def getImmediateReleaseRate(self):
-            return self.releaseRatesList[0]
+        return self.releaseRatesList[0]
 
     def scheduleFutureRelease(self, currentRun, currentPeriod, storedAmt):
-        remainder = 1- self.releaseRatesList[0]
+        remainder = 1 - self.releaseRatesList[0]
         per = currentPeriod + 1
         i = 1
-        while per < len(self.releaseList[currentRun]) and i < len(self.releaseRatesList):
-            self.releaseList[currentRun, per] = \
-            self.releaseList[currentRun, per] + storedAmt*min(self.releaseRatesList[i], remainder)
+        while per < len(self.releaseList[currentRun]) and i < len(
+            self.releaseRatesList
+        ):
+            self.releaseList[currentRun, per] = self.releaseList[
+                currentRun, per
+            ] + storedAmt * min(self.releaseRatesList[i], remainder)
             remainder = remainder - min(self.releaseRatesList[i], remainder)
-            i+=1
-            per+=1
-
+            i += 1
+            per += 1
 
 
 class FixedRateRelease(LocalRelease):
@@ -323,12 +352,12 @@ class FixedRateRelease(LocalRelease):
 
     """
 
-    def __init__(self, releaseRate = 1, delay = 0):
+    def __init__(self, releaseRate=1, delay=0):
         super(FixedRateRelease, self).__init__()
         self.releaseRatesList = []
         remainder = 1
 
-        while (remainder > 0):
+        while remainder > 0:
             if releaseRate < remainder:
                 self.releaseRatesList.append(releaseRate)
             else:
@@ -336,7 +365,6 @@ class FixedRateRelease(LocalRelease):
             remainder = remainder - releaseRate
         delayArray = np.zeros(delay)
         self.releaseRatesList = np.concatenate((delayArray, self.releaseRatesList))
-
 
 
 class ListRelease(LocalRelease):
@@ -352,12 +380,11 @@ class ListRelease(LocalRelease):
 
     """
 
-    def __init__(self, releaseRatesList = [1], delay = 0):
+    def __init__(self, releaseRatesList=[1], delay=0):
         super(ListRelease, self).__init__()
         delayArray = np.zeros(delay)
 
         self.releaseRatesList = np.concatenate((delayArray, releaseRatesList))
-
 
 
 class FunctionRelease(LocalRelease):
@@ -372,7 +399,8 @@ class FunctionRelease(LocalRelease):
     delay: Integer
         delay time in periods, befor the release starts.
     """
-    def __init__(self, releaseFunction, delay = 0):
+
+    def __init__(self, releaseFunction, delay=0):
         super(FunctionRelease, self).__init__()
         self.releaseRatesList = []
         self.totRelease = 0
@@ -381,22 +409,22 @@ class FunctionRelease(LocalRelease):
 
         delayArray = np.zeros(delay)
 
-        while self.totRelease < 1 and self.currentPeriod < 500: # MAX period if no total release
+        while (
+            self.totRelease < 1 and self.currentPeriod < 500
+        ):  # MAX period if no total release
             currentRelease = releaseFunction(self.currentPeriod)
             self.releaseRatesList.append(currentRelease)
             if currentRelease != 0:
                 self.lastNonZero = self.currentPeriod
             self.totRelease += currentRelease
-            self.currentPeriod +=1
+            self.currentPeriod += 1
 
-
-        if self.currentPeriod-1 != self.lastNonZero:
-            self.releaseRatesList = self.releaseRatesList[:self.lastNonZero+1]
+        if self.currentPeriod - 1 != self.lastNonZero:
+            self.releaseRatesList = self.releaseRatesList[: self.lastNonZero + 1]
 
         if self.totRelease > 1:
-            self.releaseRatesList[-1] += 1-self.totRelease
+            self.releaseRatesList[-1] += 1 - self.totRelease
         self.releaseList = np.concatenate((delayArray, self.releaseRatesList))
-
 
 
 class Transfer(object):
@@ -407,21 +435,22 @@ class Transfer(object):
 
     To implement, use subclass.
     """
+
     def __init__(self, target, priority):
         self.target = target
         self.priority = priority
         self.currentTC = 0
 
     def sampleTC(self):
-        print('To be implemented in Subclass')
+        print("To be implemented in Subclass")
 
     def getCurrentTC(self):
         return self.currentTC
 
-    ''' To be overwritten by time dependent transfers'''
+    """ To be overwritten by time dependent transfers"""
+
     def updateTC(self, period):
         pass
-
 
 
 class ConstTransfer(Transfer):
@@ -449,7 +478,6 @@ class ConstTransfer(Transfer):
         self.currentTC = self.value
 
 
-
 class StochasticTransfer(Transfer):
     """ A Transfer Coefficient determined by an underlying probability \
     distribution
@@ -468,7 +496,8 @@ class StochasticTransfer(Transfer):
         a higher priority excludes the value from adjustment
 
     """
-    def __init__(self, function, parameters, target,  priority=1):
+
+    def __init__(self, function, parameters, target, priority=1):
         super(StochasticTransfer, self).__init__(target, priority)
         self.function = function
         self.parameters = parameters
@@ -480,10 +509,10 @@ class StochasticTransfer(Transfer):
         self.currentTC = self.function(*self.parameters)
 
 
-
 ############################### Time 'dependent' classes ########################
 
-class TransferDistribution():
+
+class TransferDistribution:
     """ A Transfer Coefficient determined by an underlying probability \
     distribution. Only to be used with TimeDependentDistributionTransfer
 
@@ -496,6 +525,7 @@ class TransferDistribution():
         parameter list of the probability distribution function
 
     """
+
     def __init__(self, function, parameters):
 
         self.function = function
@@ -508,8 +538,7 @@ class TransferDistribution():
         return self.function(*self.parameters)
 
 
-
-class TransferConstant():
+class TransferConstant:
     """ A Transfer with a deterministic TC. To be used within
         TimeDependentDistributionTransfer.
     Parameters:
@@ -524,7 +553,6 @@ class TransferConstant():
     def sampleTC(self):
         """ assign the constant value as current TC """
         return self.value
-
 
 
 class TimeDependentDistributionTransfer(Transfer):
@@ -542,22 +570,24 @@ class TimeDependentDistributionTransfer(Transfer):
             if random values for the transfer coefficients are normalized, \
             a higher priority excludes the value from adjustment
     """
+
     def __init__(self, transfer_distribution_list, target, owning_comp, priority=1):
         super(TimeDependentDistributionTransfer, self).__init__(target, priority)
         self.transfer_distribution_list = transfer_distribution_list
-        self.transfer_list=[]
+        self.transfer_list = []
         self.owning_comp = owning_comp
 
     def sampleTC(self):
-        self.transfer_list=[]
+        self.transfer_list = []
         """ Randomly assigns one value from the sample as current TC"""
 
         for d in self.transfer_distribution_list:
-            self.transfer_list.append(d.sampleTC()) # creates a list of sampeled values which will be attributed to each period
+            self.transfer_list.append(
+                d.sampleTC()
+            )  # creates a list of sampeled values which will be attributed to each period
 
     def updateTC(self, period):
         self.currentTC = self.transfer_list[period]
-
 
 
 class TimeDependentListTransfer(Transfer):
@@ -578,6 +608,7 @@ class TimeDependentListTransfer(Transfer):
             a higher priority excludes the value from adjustment
 
     """
+
     def __init__(self, transfer_list, target, owning_comp, priority=1):
         super(TimeDependentListTransfer, self).__init__(target, priority)
         self.transfer_list = transfer_list
@@ -590,8 +621,8 @@ class TimeDependentListTransfer(Transfer):
         self.currentTC = self.transfer_list[period]
 
 
-
 ###########################################################################################
+
 
 class RandomChoiceTransfer(Transfer):
     """ A Transfer Coefficient determined by a given sample.
@@ -607,6 +638,7 @@ class RandomChoiceTransfer(Transfer):
             a higher priority excludes the value from adjustment
 
     """
+
     def __init__(self, sample, target, priority=1):
         super(RandomChoiceTransfer, self).__init__(target, priority)
         self.sample = sample
@@ -614,7 +646,6 @@ class RandomChoiceTransfer(Transfer):
     def sampleTC(self):
         """ Randomly assigns one value from the sample as current TC"""
         self.currentTC = np.random.choice(self.sample)
-
 
 
 class AggregatedTransfer(Transfer):
@@ -636,22 +667,23 @@ class AggregatedTransfer(Transfer):
         a higher priority excludes the value from adjustment
     """
 
-    def __init__(self, target, singleTransfers, weights = None, priority=1):
+    def __init__(self, target, singleTransfers, weights=None, priority=1):
         super(AggregatedTransfer, self).__init__(target, priority)
         self.singleTransfers = singleTransfers
         if weights != None:
             self.weights = weights
         else:
-            self.weights = [1]*len(singleTransfers)
+            self.weights = [1] * len(singleTransfers)
 
     def sampleTC(self):
-        cs = np.cumsum(self.weights) #An array of the weights, cumulatively summed.
+        cs = np.cumsum(self.weights)  # An array of the weights, cumulatively summed.
         total = sum(self.weights)
-        ind = sum(cs < np.random.uniform(0, total)) #Find the index of the first weight over a random value.
+        ind = sum(
+            cs < np.random.uniform(0, total)
+        )  # Find the index of the first weight over a random value.
         transfer = self.singleTransfers[ind]
         transfer.sampleTC()
         self.currentTC = transfer.getCurrentTC()
-
 
 
 class SinglePeriodInflow(object):
@@ -662,6 +694,7 @@ class SinglePeriodInflow(object):
     To implement use subclass
 
     """
+
     def __init__(self):
         self.currentValue = None
 
@@ -670,7 +703,6 @@ class SinglePeriodInflow(object):
 
     def getValue(self):
         return self.currentValue
-
 
 
 class StochasticFunctionInflow(SinglePeriodInflow):
@@ -687,6 +719,7 @@ class StochasticFunctionInflow(SinglePeriodInflow):
         parameter list of the distribution function.
 
     """
+
     def __init__(self, probabilityDistribution, parameters):
         super(StochasticFunctionInflow, self).__init__()
         self.pdf = probabilityDistribution
@@ -694,7 +727,6 @@ class StochasticFunctionInflow(SinglePeriodInflow):
 
     def sampleValue(self):
         self.currentValue = self.pdf(*self.parameterValues)
-
 
 
 class RandomChoiceInflow(SinglePeriodInflow):
@@ -707,13 +739,13 @@ class RandomChoiceInflow(SinglePeriodInflow):
     sample: list<float>
         sample to draw random value from
     """
+
     def __init__(self, sample):
         super(RandomChoiceInflow, self).__init__()
         self.sample = sample
 
     def sampleValue(self):
         self.currentValue = np.random.choice(self.sample)
-
 
 
 class FixedValueInflow(SinglePeriodInflow):
@@ -724,10 +756,10 @@ class FixedValueInflow(SinglePeriodInflow):
     value: float
         the inflow vlaue
     """
+
     def __init__(self, value):
         super(FixedValueInflow, self).__init__()
         self.currentValue = value
-
 
 
 class ExternalInflow(object):
@@ -735,7 +767,10 @@ class ExternalInflow(object):
 
     To implement, please use subclass
     """
-    def __init__(self, target, derivationDistribution, derivationParameters, startDelay):
+
+    def __init__(
+        self, target, derivationDistribution, derivationParameters, startDelay
+    ):
         self.target = target
         self.startDelay = startDelay
         self.derivationDistribution = derivationDistribution
@@ -744,7 +779,6 @@ class ExternalInflow(object):
 
     def getCurrentInflow(self, period):
         pass
-
 
 
 class ExternalListInflow(ExternalInflow):
@@ -768,8 +802,17 @@ class ExternalListInflow(ExternalInflow):
             time lag between the simulation start and the first release from the source.
     """
 
-    def __init__(self, target, inflowList, derivationDistribution = None, derivationParameters = [], startDelay = 0):
-        super(ExternalListInflow, self).__init__(target, derivationDistribution, derivationParameters, startDelay)
+    def __init__(
+        self,
+        target,
+        inflowList,
+        derivationDistribution=None,
+        derivationParameters=[],
+        startDelay=0,
+    ):
+        super(ExternalListInflow, self).__init__(
+            target, derivationDistribution, derivationParameters, startDelay
+        )
         self.inflowList = inflowList
 
         for i in range(len(self.inflowList)):
@@ -777,15 +820,18 @@ class ExternalListInflow(ExternalInflow):
             if isinstance(self.inflowList[i], (int, float, list)):
                 self.inflowList[i] = StochasticFunctionInflow(self.inflowList[i])
 
-    def getCurrentInflow(self, period = 0):
+    def getCurrentInflow(self, period=0):
         """ determines the inflow for a given period"""
 
         if period - self.startDelay < 0:
             return 0
         else:
-            if (period-self.startDelay) < len(self.inflowList):
-                returnValue = self.inflowList[(period-self.startDelay)].getValue()*self.derivationFactor
-                if returnValue >=0:
+            if (period - self.startDelay) < len(self.inflowList):
+                returnValue = (
+                    self.inflowList[(period - self.startDelay)].getValue()
+                    * self.derivationFactor
+                )
+                if returnValue >= 0:
                     return returnValue
                 else:
                     return 0
@@ -796,8 +842,9 @@ class ExternalListInflow(ExternalInflow):
         for inf in self.inflowList:
             inf.sampleValue()
         if self.derivationDistribution != None:
-            self.derivationFactor = self.derivationDistribution(*self.derivationParameters)
-
+            self.derivationFactor = self.derivationDistribution(
+                *self.derivationParameters
+            )
 
 
 class ExternalFunctionInflow(ExternalInflow):
@@ -826,9 +873,20 @@ class ExternalFunctionInflow(ExternalInflow):
         time lag between the simulation start and the first release from the source.
 
     """
-    def __init__(self, target, basicInflow, inflowFunction = None, defaultInflowFunction= 0, derivationDistribution = None,
-        derivationParameters=[], startDelay=0):
-        super(ExternalFunctionInflow, self).__init__(target, derivationDistribution, derivationParameters, startDelay)
+
+    def __init__(
+        self,
+        target,
+        basicInflow,
+        inflowFunction=None,
+        defaultInflowFunction=0,
+        derivationDistribution=None,
+        derivationParameters=[],
+        startDelay=0,
+    ):
+        super(ExternalFunctionInflow, self).__init__(
+            target, derivationDistribution, derivationParameters, startDelay
+        )
         if inflowFunction == None:
             self.inflowFunction = self.defaultInflowFunction
         else:
@@ -840,11 +898,14 @@ class ExternalFunctionInflow(ExternalInflow):
         else:
             self.basicInflow = basicInflow
 
-    def getCurrentInflow(self, period= 0):
+    def getCurrentInflow(self, period=0):
         if period - self.startDelay < 0:
             return 0
         else:
-            returnValue = self.inflowFunction(self.baseValue, period-self.startDelay)*self.derivationFactor
+            returnValue = (
+                self.inflowFunction(self.baseValue, period - self.startDelay)
+                * self.derivationFactor
+            )
             if returnValue >= 0:
                 return returnValue
             else:
@@ -854,7 +915,9 @@ class ExternalFunctionInflow(ExternalInflow):
         self.basicInflow.sampleValue()
         self.baseValue = self.basicInflow.getValue()
         if self.derivationDistribution != None:
-            self.derivationFactor = self.derivationDistribution(*self.derivationParameters)
+            self.derivationFactor = self.derivationDistribution(
+                *self.derivationParameters
+            )
 
     def defaultInflowFunction(self, base, period):
         return base

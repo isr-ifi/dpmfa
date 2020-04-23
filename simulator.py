@@ -16,7 +16,6 @@ from . import components as cp
 import math
 
 
-
 class Simulator(object):
     """ The simulator provides a framework to perform simulaton experiments on
     pmfa models.
@@ -40,7 +39,9 @@ class Simulator(object):
         for normalization is used.
     """
 
-    def __init__(self, runs, periods, seed = None, useGlobalTCSettings = True, normalizeTCs = True):
+    def __init__(
+        self, runs, periods, seed=None, useGlobalTCSettings=True, normalizeTCs=True
+    ):
         self.numRuns = runs
         self.numPeriods = periods
         self.useGlobalTCSettings = useGlobalTCSettings
@@ -52,7 +53,7 @@ class Simulator(object):
         self.flowCompartments = []
         self.sinks = []
         self.stocks = []
-        self.checkInflows  =None
+        self.checkInflows = None
         self.current_period = 0
 
     def setModel(self, model):
@@ -80,17 +81,17 @@ class Simulator(object):
         """ performs the simulation on the model with regard to the given
         parameters
         """
-        print('')
-        print('Start Simulation')
-        print('Model: '+ str(self.model.name))
-        print('Seed Value: '+str(self.model.seed))
-        print('Number of Simulation Runs: '+str(self.numRuns))
-        print('Number of Periods: '+str(self.numPeriods))
-        print('Progress (in percent):')
+        print("")
+        print("Start Simulation")
+        print("Model: " + str(self.model.name))
+        print("Seed Value: " + str(self.model.seed))
+        print("Number of Simulation Runs: " + str(self.numRuns))
+        print("Number of Periods: " + str(self.numPeriods))
+        print("Progress (in percent):")
 
         currentStep = 1
 
-        stepSize =  math.ceil(self.numRuns/100)
+        stepSize = math.ceil(self.numRuns / 100)
         currentStepRun = math.ceil(stepSize)
 
         for run in range(self.numRuns):
@@ -113,22 +114,34 @@ class Simulator(object):
                     sink.updateInventory(run, period)
 
                 for inflow in self.inflows:
-                    allInflows[self.compartments.index(inflow.target), period]= \
-                    allInflows[self.compartments.index(inflow.target), period] + inflow.getCurrentInflow(period)
+                    allInflows[
+                        self.compartments.index(inflow.target), period
+                    ] = allInflows[
+                        self.compartments.index(inflow.target), period
+                    ] + inflow.getCurrentInflow(
+                        period
+                    )
 
                 for stock in self.stocks:
                     localReleases = stock.releaseMaterial(run, period)
                     for locRel in localReleases.keys():
-                        allInflows [locRel.compNumber, period]= allInflows[locRel.compNumber, period] + localReleases [locRel]
+                        allInflows[locRel.compNumber, period] = (
+                            allInflows[locRel.compNumber, period]
+                            + localReleases[locRel]
+                        )
 
-                inflowVector = allInflows[:,period]
+                inflowVector = allInflows[:, period]
 
-                flowMatrix = np.zeros(shape=(len(self.compartments), len(self.compartments)))
-                np.fill_diagonal(flowMatrix,1)
+                flowMatrix = np.zeros(
+                    shape=(len(self.compartments), len(self.compartments))
+                )
+                np.fill_diagonal(flowMatrix, 1)
 
                 for compartment in self.flowCompartments:
                     for trans in compartment.transfers:
-                        flowMatrix[trans.target.compNumber, compartment.compNumber]= -trans.getCurrentTC()*compartment.immediateReleaseRate
+                        flowMatrix[trans.target.compNumber, compartment.compNumber] = (
+                            -trans.getCurrentTC() * compartment.immediateReleaseRate
+                        )
                 solutionVector = la.solve(flowMatrix, inflowVector)
 
                 for i in self.compartments:
@@ -138,73 +151,73 @@ class Simulator(object):
                     i.storeMaterial(run, period, solutionVector[i.compNumber])
 
             if run == currentStepRun:
-                print(str(currentStep)+', ')
+                print(str(currentStep) + ", ")
                 currentStepRun += stepSize
-                currentStep +=1
+                currentStep += 1
 
-        print('')
-        print('Simulation complete')
-        print('')
+        print("")
+        print("Simulation complete")
+        print("")
 
     def getAllStockedMaterial(self):
-        '''
+        """
         returns a dictionary of all sinks and stocks and the matrices of the
         logged stored material
-        '''
+        """
         inventories = {}
         for sink in self.sinks:
-            inventories[sink.name]= sink.inventory
+            inventories[sink.name] = sink.inventory
         return inventories
 
     def getLoggedInflows(self):
-        '''
+        """
         returns a dictionary of all compartments and logged inflow matrices
-        '''
+        """
         inflows = {}
         for comp in self.compartments:
             if comp.logInflows:
-                inflows[comp.name]= comp.inflowRecord
+                inflows[comp.name] = comp.inflowRecord
         return inflows
 
     def getLoggedTotalOutflows(self):
-        '''
+        """
         gives absolulte outflows from each compartments (if logged)
-        '''
+        """
         outflows = {}
         for comp in self.flowCompartments:
             if comp.logOutflows:
                 outflowSum = []
                 for outflow in comp.outflowRecord:
                     outflowSum.append(comp.outflowRecord[outflow])
-                outflows[comp.name]=sum(outflowSum)
+                outflows[comp.name] = sum(outflowSum)
         return outflows
 
     def getLoggedFlows(self):
-        '''
+        """
         returns matrices for all flows in between compartments (dictionary of dictionaries)
-        '''
+        """
         allFlows = {}
         for comp in self.flowCompartments:
             if comp.logOutflows:
-                allFlows[comp.name]= comp.outflowRecord
+                allFlows[comp.name] = comp.outflowRecord
 
         return allFlows
 
     def getImmediateFlowsFromAllStocks(self):
-        '''
+        """
         returns all immediate flows from stocks
-        '''
+        """
         immediateStocks = [stock for stock in self.stocks if stock.logImmediateFlows]
 
         allFlows = {}
         for stock in immediateStocks:
-            allFlows[stock]=stock.immediateFlowRecord
+            allFlows[stock] = stock.immediateFlowRecord
         return allFlows
 
     def getLoggedCategoryStock(self, category):
-        '''
+        """
         return the summed up inventory for all sinks and stocks of a category
-        '''
+        """
         catStocks = [c for c in self.sinks if category in c.categories]
         combinedInventory = []
 
@@ -213,21 +226,29 @@ class Simulator(object):
         return sum(combinedInventory)
 
     def getLoggedCategoryInflows(self, category):
-        '''
+        """
         returns the summed up inflow to the compartments of a category
-        '''
-        catCompartments = [comp for comp in self.compartments if category in comp.categories and comp.logInflows]
+        """
+        catCompartments = [
+            comp
+            for comp in self.compartments
+            if category in comp.categories and comp.logInflows
+        ]
         loggedInflows = []
         for catComp in catCompartments:
             loggedInflows.append(catComp.inflowRecord)
         return sum(loggedInflows)
 
     def getLoggedCategoryOutflowSum(self, category):
-        '''
+        """
         returns a matrix of the sums of the outflows from all the compartments of the category to all
         subsequet compartments
-        '''
-        catFlows = [c for c in self.flowCompartments if category in c.categories and c.logOutflows]
+        """
+        catFlows = [
+            c
+            for c in self.flowCompartments
+            if category in c.categories and c.logOutflows
+        ]
         allOutflows = []
         for catFlow in catFlows:
             for name in catFlow.outflowRecord:
@@ -235,24 +256,32 @@ class Simulator(object):
         return sum(allOutflows)
 
     def getLoggedCategoryOutflows(self, category):
-        '''
+        """
         returns the outflows of all comparmtents of a category to all subsequent compartments
-        '''
-        catFlows = [c for c in self.flowCompartments if category in c.categories and c.logOutflows]
+        """
+        catFlows = [
+            c
+            for c in self.flowCompartments
+            if category in c.categories and c.logOutflows
+        ]
         allFlows = {}
         for flow in catFlows:
             for name in flow.outflowRecord:
                 if allFlows.has_key(name):
-                    allFlows[name] = allFlows[name]+flow.outflowRecord[name]
+                    allFlows[name] = allFlows[name] + flow.outflowRecord[name]
                 else:
-                    allFlows[name]= flow.outflowRecord[name]
+                    allFlows[name] = flow.outflowRecord[name]
         return allFlows
 
     def getCategoryImmediateFlowFromStockSum(self, category):
-        '''
+        """
         returns a matrix of the sum of all immediate outflows from stocks of a category
-        '''
-        immediateStocks = [stock for stock in self.stocks if stock.logImmediateFlows and category in stock.categories]
+        """
+        immediateStocks = [
+            stock
+            for stock in self.stocks
+            if stock.logImmediateFlows and category in stock.categories
+        ]
         totalImmediateFlow = []
         for stock in immediateStocks:
             for rec in stock.immediateFlowRecord:
@@ -261,9 +290,9 @@ class Simulator(object):
         return sum(totalImmediateFlow)
 
     def getCompartmentsOfCategory(self, category):
-        '''
+        """
         returns all compartments of one category
-        '''
+        """
         return [c for c in self.compartments if category in c.categories]
 
     def getCombinedOutflows(self, compartmentList):
@@ -272,9 +301,15 @@ class Simulator(object):
         """
         combinedOutflow = {}
         for comp in compartmentList:
-            for name in comp.outflowRecord: # outflowRecord is a dictionary containing a list(outputflows) of keys with value in matrix
+            for (
+                name
+            ) in (
+                comp.outflowRecord
+            ):  # outflowRecord is a dictionary containing a list(outputflows) of keys with value in matrix
                 if combinedOutflow.has_key(name):
-                    combinedOutflow[name] = combinedOutflow[name]+comp.outflowRecord[name]
+                    combinedOutflow[name] = (
+                        combinedOutflow[name] + comp.outflowRecord[name]
+                    )
                 else:
                     combinedOutflow[name] = comp.outflowRecord[name]
 
@@ -315,15 +350,13 @@ class Simulator(object):
         return loggedOutflows
 
     def getCategories(self):
-        '''
+        """
         category list of the model
-        '''
+        """
         return self.model.categoriesList
 
     def getCompartment(self, name):
-        '''
+        """
         return a specific compartment for the given name
-        '''
+        """
         return next((comp for comp in self.compartments if comp.name == name), None)
-
-
