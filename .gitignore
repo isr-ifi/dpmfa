@@ -2,3 +2,4 @@ htmlcov/
 *.swp
 bak/
 __pycache__/
+*.csv

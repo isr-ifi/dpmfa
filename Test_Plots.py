@@ -7,11 +7,14 @@ Tire Wear Model for Switzerland
 
 """
 
+import Test_Runner as res
+
 ### Productionvolume diagram
 import numpy as np
 
 # import pandas as pd
 import matplotlib.pyplot as plt
+import os
 
 # import matplotlib.lines as mlines
 # from scipy.stats import gaussian_kde
@@ -20,17 +23,12 @@ import matplotlib.pyplot as plt
 ### PLOT ALL OUTFLOWS #########################################################
 
 # compartment with loggedOutflows
-loggedOutflows = simulator.getLoggedOutflows()
+loggedOutflows = res.simulator.getLoggedOutflows()
 
 # loop over the list of compartments with loggedoutflows
 for Comp in loggedOutflows:
-    print "Flows from " + Comp.name + ":"
 
-    # in this case name is the key, value is the matrix(data), in this case .items is needed
     for comp, data in Comp.outflowRecord.items():
-        print " --> " + str(comp) + ": Mean = " + str(
-            round(np.mean(data[:, Speriod]), 0)
-        ) + " ± " + str(round(np.std(data[:, Speriod]), 0))
 
         mean = []
         q25 = []
@@ -49,9 +47,11 @@ for Comp in loggedOutflows:
         fig = plt.figure("FLOW_" + Comp.name + " to " + comp)
         plt.xlabel("Year", fontsize=14)
         plt.ylabel("Flow mass (t)", fontsize=14)
+        plt.title("Flow from " + Comp.name + " to " + comp)
         plt.rcParams["font.size"] = 12  # tick's font
-        plt.xlim(xmin=1984.5, xmax=2016.5)
-        xScale = np.arange(1985, 2017)
+        plt.xlim(xmin=res.startYear - 0.5, xmax=res.startYear + res.Tperiods - 0.5)
+        xScale = np.arange(res.startYear, res.startYear + res.Tperiods)
+
         plt.fill_between(
             xScale, minimum, maximum, color="blanchedalmond", label="Range"
         )
@@ -75,6 +75,8 @@ for Comp in loggedOutflows:
         plt.legend(loc="upper left", fontsize="small")
 
         fig.savefig(
-            "Graphs Tire Wear/TimeSeries_Tire" + Comp.name + " to " + comp + ".pdf",
+            os.path.join(
+                "experiment_output/TimeSeries_" + Comp.name + "_to_" + comp + ".pdf"
+            ),
             bbox_inches="tight",
         )

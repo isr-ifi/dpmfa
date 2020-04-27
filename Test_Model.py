@@ -40,7 +40,7 @@ model.setCompartments(compartmentList)
 
 # some raw data
 rawdata_inflow1 = [1000, 0, 0, 0, 0]
-rawdata_inflow2 = [500, 0, 0, 0, 0]
+rawdata_inflow2 = [500, 500, 500, 500, 500]
 CV = 0.5
 
 # for storing distributions

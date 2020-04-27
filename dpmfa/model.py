@@ -50,12 +50,12 @@ class Model(object):
         if all(isinstance(comp, cp.Compartment) for comp in compartments):
             self.compartments = compartments
         else:
-            print("invalid compartment list!")
+            print("Error: all compartments are not 'Compartment' instances")
 
         if all(isinstance(inflow, cp.ExternalInflow) for inflow in inflows):
             self.inflows = inflows
         else:
-            print("invalid inflow list!")
+            print("Error: all inflows are not 'ExternalInflow' instances")
 
         self.seed = 1
         self.categoriesList = []
@@ -73,7 +73,7 @@ class Model(object):
         if all(isinstance(comp, cp.Compartment) for comp in compartmentList):
             self.compartments = compartmentList
         else:
-            print("invalid compartment list!")
+            print("Error: all compartments are not 'Compartment' instances")
 
     def addCompartment(self, compartment):
         """
@@ -86,6 +86,8 @@ class Model(object):
         """
         if isinstance(compartment, cp.Compartment):
             self.compartments.append(compartment)
+        else:
+            print("Error: use the 'Compartment' class")
 
     def setInflows(self, inflowList):
         """
@@ -99,7 +101,7 @@ class Model(object):
         if all(isinstance(inflow, cp.ExternalInflow) for inflow in inflowList):
             self.inflows = inflowList
         else:
-            print("invalid inflow list!")
+            print("Error: all inflows are not 'ExternalInflow' instances")
 
     def addInflow(self, inflow):
         """
@@ -110,18 +112,16 @@ class Model(object):
         inflow: components.ExternalInflow
             an external source
         """
-
         if isinstance(inflow, cp.ExternalInflow):
             self.inflows.append(inflow)
         else:
-            print("not an external inflow")
+            print("Error: use the 'ExternalInflow' class")
 
     def updateCompartmentCategories(self):
         """
         updates the category list of the model to contain all compartments
         categories
         """
-
         newCatList = []
         for comp in self.compartments:
             newCatList += comp.categories
@@ -161,7 +161,7 @@ class Model(object):
             )
             compartment.transfers.append(transfer)
         else:
-            print("not a transfer")
+            print("Error: use the 'Transfer' class")
 
     def setReleaseStrategy(self, stockName, releaseStrategy):
         """
@@ -182,7 +182,7 @@ class Model(object):
         if stock != None:
             stock.releaseStrategy = releaseStrategy
         else:
-            print("no such stock: " + str(stockName))
+            print("Error: there is no such stock: " + str(stockName))
 
     def checkModelValidity(self):
         """
@@ -190,19 +190,64 @@ class Model(object):
         compartments, if flow compartments have transfers and if stocks have
         a release strategy.
         """
+        # test compartments, their transfers and releases
         for comp in self.compartments:
+
+            # test flow compartments
             if isinstance(comp, cp.FlowCompartment):
                 transferList = comp.transfers
                 if not transferList:
-                    print("Err: no transfers assined in " + str(comp.name))
+                    print("Error: no transfers assigned to " + str(comp.name))
+
                 for trans in transferList:
                     if not isinstance(trans, cp.Transfer):
-                        print("invalid transfer")
+                        print(
+                            "Error: invalid transfer from "
+                            + str(comp.name)
+                            + ". Please implement using the class 'Transfer' from 'components'."
+                        )
 
+            # test stocks (no need to test transfers, stocks are also FlowCompartments)
             if isinstance(comp, cp.Stock):
+
                 release = comp.localRelease
                 if not isinstance(release, cp.LocalRelease):
-                    print("local release from stock not assigned")
+                    print(
+                        "Error: local release from stock "
+                        + str(comp.name)
+                        + " not assigned or release not assigned using 'LocalRelease'."
+                    )
 
+        # test inflows
         if not self.inflows:
-            print("No model inflow defined!")
+            print("Error: No model inflow defined")
+
+    def statusModel(self):
+        """
+        Prints out a summary of the existing transfers in the model.
+        """
+        print("")
+        print("-----------------------")
+        print("Printing out current model content.")
+        print(
+            "If running statusModel fails, try running checkModelValidity for diagnostics."
+        )
+        print("-----------------------")
+        for comp in self.compartments:
+            if isinstance(comp, cp.Stock):
+                print(str(comp.name) + " is a Stock compartment.")
+                transferList = comp.transfers
+                for trans in transferList:
+                    print("--> " + str(trans.target.name))
+
+            elif isinstance(comp, cp.FlowCompartment):
+                print(str(comp.name) + " is a Flow compartment.")
+                transferList = comp.transfers
+                for trans in transferList:
+                    print("--> " + str(trans.target.name))
+
+            elif isinstance(comp, cp.Sink):
+                print(str(comp.name) + " is a Sink compartment.")
+
+        print("-----------------------")
+        print("")
