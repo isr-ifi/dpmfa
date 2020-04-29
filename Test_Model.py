@@ -1,39 +1,36 @@
 # -*- coding: utf-8 -*-
-"""
-Created on 19.11.2018
-@author: sram
-Tire Wear Flow Model for Switzerland 1988 - 2018
-"""
+
 ### PACKAGE IMPORT AND VARIABLE DEFINITION ################################################################################################################################
 
 # import necessary packages
+import numpy as np
+import numpy.random as nr
+
 from dpmfa import components as cp
 from dpmfa import model
-import numpy.random as nr
-import numpy as np
 
 # create model
-model = model.Model("Simple Experiment for Testing")
+simpleModel = model.Model("Simple Experiment for Testing")
 
 RUNS = 10
 
 ### COMPARTMENT DEFINITION ################################################################################################################################################
 
-Inflow1 = cp.FlowCompartment("Inflow1", logInflows=True, logOutflows=True)
-Inflow2 = cp.FlowCompartment("Inflow2", logInflows=True, logOutflows=True)
+inflow1 = cp.FlowCompartment("Inflow1", logInflows=True, logOutflows=True)
+inflow2 = cp.FlowCompartment("Inflow2", logInflows=True, logOutflows=True)
 
-Stock1 = cp.Stock("Stock1", logInflows=True, logOutflows=True, logImmediateFlows=True)
-Flow1 = cp.FlowCompartment("Flow1", logInflows=True, logOutflows=True)
+stock1 = cp.Stock("Stock1", logInflows=True, logOutflows=True, logImmediateFlows=True)
+flow1 = cp.FlowCompartment("Flow1", logInflows=True, logOutflows=True)
 
-Sink1 = cp.Sink("Sink1", logInflows=True)
-Sink2 = cp.Sink("Sink2", logInflows=True)
-Sink3 = cp.Sink("Sink3", logInflows=True)
+sink1 = cp.Sink("Sink1", logInflows=True)
+sink2 = cp.Sink("Sink2", logInflows=True)
+sink3 = cp.Sink("Sink3", logInflows=True)
 
 # create the list of compartments
-compartmentList = [Inflow1, Inflow2, Stock1, Flow1, Sink1, Sink2, Sink3]
+compartmentList = [inflow1, inflow2, stock1, flow1, sink1, sink2, sink3]
 
 # input into model
-model.setCompartments(compartmentList)
+simpleModel.setCompartments(compartmentList)
 
 
 ### INPUT DATA ############################################################################################################################################################
@@ -77,14 +74,14 @@ for i in periodRange:
         )
 
 # include inflows in model
-model.addInflow(
+simpleModel.addInflow(
     cp.ExternalListInflow(
-        Inflow1, [cp.RandomChoiceInflow(data_inflow1[x]) for x in periodRange]
+        inflow1, [cp.RandomChoiceInflow(data_inflow1[x]) for x in periodRange]
     )
 )
-model.addInflow(
+simpleModel.addInflow(
     cp.ExternalListInflow(
-        Inflow2, [cp.RandomChoiceInflow(data_inflow2[x]) for x in periodRange]
+        inflow2, [cp.RandomChoiceInflow(data_inflow2[x]) for x in periodRange]
     )
 )
 
@@ -92,20 +89,20 @@ model.addInflow(
 ### TRANSFER COEFFICIENTS #################################################################################################################################################
 
 
-Inflow1.transfers = [
-    cp.StochasticTransfer(nr.triangular, [0.7, 0.8, 0.9], Stock1, priority=2),
-    cp.ConstTransfer(1, Flow1, priority=1),
+inflow1.transfers = [
+    cp.StochasticTransfer(nr.triangular, [0.7, 0.8, 0.9], stock1, priority=2),
+    cp.ConstTransfer(1, flow1, priority=1),
 ]
 
-Inflow2.transfers = [
-    cp.StochasticTransfer(nr.triangular, [0.4, 0.6, 0.8], Flow1, priority=2),
-    cp.ConstTransfer(1, Sink3, priority=1),
+inflow2.transfers = [
+    cp.StochasticTransfer(nr.triangular, [0.4, 0.6, 0.8], flow1, priority=2),
+    cp.ConstTransfer(1, sink3, priority=1),
 ]
 
-Flow1.transfers = [
-    cp.StochasticTransfer(nr.triangular, [0.4, 0.5, 0.6], Stock1, priority=2),
-    cp.ConstTransfer(1, Sink2, priority=1),
+flow1.transfers = [
+    cp.StochasticTransfer(nr.triangular, [0.4, 0.5, 0.6], stock1, priority=2),
+    cp.ConstTransfer(1, sink2, priority=1),
 ]
 
-Stock1.localRelease = cp.ListRelease([0.5, 0.2, 0.2, 0.1])
-Stock1.transfers = [cp.ConstTransfer(1, Sink1, priority=1)]
+stock1.localRelease = cp.ListRelease([0.5, 0.2, 0.2, 0.1])
+stock1.transfers = [cp.ConstTransfer(1, sink1, priority=1)]

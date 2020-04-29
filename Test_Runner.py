@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
-"""
 
-Created on 19.11.2018
-@author: sram
-Tire Wear Flow Model for Switzerland 1988 - 2018
-
-"""
 
 ###############################################################################
 
-import Test_Model
-from dpmfa import simulator as sc
-import numpy as np
 import os
+import csv
+import numpy as np
+
+from dpmfa import simulator as sc
+import Test_Model
 
 ###############################################################################
 
@@ -89,8 +85,6 @@ print("-----------------------")
 print("")
 
 ###############################################################################
-
-import csv
 
 # export all outflows to csv
 for Comp in loggedOutflows:

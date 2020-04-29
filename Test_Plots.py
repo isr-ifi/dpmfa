@@ -1,23 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
 
-Created on 19.11.2018
-@author: sram
-Tire Wear Model for Switzerland
-
-"""
+import os
+import numpy as np
+import matplotlib.pyplot as plt
 
 import Test_Runner as res
-
-### Productionvolume diagram
-import numpy as np
-
-# import pandas as pd
-import matplotlib.pyplot as plt
-import os
-
-# import matplotlib.lines as mlines
-# from scipy.stats import gaussian_kde
 
 
 ### PLOT ALL OUTFLOWS #########################################################
