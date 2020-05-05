@@ -13,13 +13,13 @@ import Test_Model
 ###############################################################################
 
 # define model
-model = Test_Model.model
+simpleModel = Test_Model.simpleModel
 
 # check validity
-model.checkModelValidity()
+simpleModel.checkModelValidity()
 
 # print out the model content for verification by the experimenter
-model.statusModel()
+simpleModel.debugModel()
 
 ###############################################################################
 
@@ -41,7 +41,10 @@ RUNS = 10
 simulator = sc.Simulator(RUNS, Tperiods, 2250, True, True)
 
 # define what model needs to be run
-simulator.setModel(model)
+simulator.setModel(simpleModel)
+
+# check simulator object
+simulator.debugSimulator()
 
 # run the model
 simulator.runSimulation()
@@ -107,7 +110,7 @@ for Comp in loggedOutflows:
 for Comp in loggedInflows:
     # loggedOutflows is the compartment list of compartmensts with loggedoutflows
     with open(
-        os.path.join("experiment_output", "loggedInflows_" + Comp.name + ".csv"),
+        os.path.join("experiment_output", "loggedInflows_" + Comp + ".csv"),
         "w",
         newline="",
     ) as RM:

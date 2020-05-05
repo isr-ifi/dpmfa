@@ -151,7 +151,7 @@ class Simulator(object):
                     i.storeMaterial(run, period, solutionVector[i.compNumber])
 
             if run == currentStepRun:
-                print(str(currentStep) + ", ")
+                print(str(currentStep) + ", ", end="")
                 currentStepRun += stepSize
                 currentStep += 1
 
@@ -360,3 +360,89 @@ class Simulator(object):
         return a specific compartment for the given name
         """
         return next((comp for comp in self.compartments if comp.name == name), None)
+
+    def debugSimulator(self):
+        """
+        checks whether all the data can be obtained from the model and so that
+        bugs during the actual simulation can be prevented
+        """
+        print("\n-----------------------\nAnalyzing simulator object\n")
+
+        # first check that the number of periods is already included in the
+        # simulator object, otherwise stop
+        if self.numPeriods == None:
+            raise TypeError("missing the number of periods")
+
+        else:
+            for comp in self.flowCompartments:
+                print("Checking starting TCs for compartment " + str(comp.name) + "...")
+                comp.determineTCs(self.useGlobalTCSettings, self.normalizeTCs)
+
+            for infl in self.inflows:
+                print(
+                    "Checking starting inflow for compartment "
+                    + str(infl.target)
+                    + "..."
+                )
+                infl.sampleValues()
+
+            for stock in self.stocks:
+                print(
+                    "Checking starting stock for compartment " + str(stock.name) + "..."
+                )
+                stock.determineTCs(self.useGlobalTCSettings, self.normalizeTCs)
+
+            allInflows = np.zeros((len(self.compartments), self.numPeriods))
+
+            for period in range(self.numPeriods):
+
+                print("\nPeriod " + str(period) + "...")
+                # update current period for time dependent transfers of a compartment
+                for comp in self.flowCompartments:
+                    print("Updating compartment mass " + str(comp.name) + "...")
+                    comp.updateTCs(period)
+
+                for sink in self.sinks:
+                    print("Updating sink " + str(sink.name) + "...")
+                    sink.updateInventory(1, period)
+
+                for inflow in self.inflows:
+                    print("Updating inflow " + str(infl.target) + "...")
+                    allInflows[
+                        self.compartments.index(inflow.target), period
+                    ] = allInflows[
+                        self.compartments.index(inflow.target), period
+                    ] + inflow.getCurrentInflow(
+                        period
+                    )
+
+                for stock in self.stocks:
+                    print("Updating stock " + str(stock.name) + "...")
+                    localReleases = stock.releaseMaterial(1, period)
+                    for locRel in localReleases.keys():
+                        allInflows[locRel.compNumber, period] = (
+                            allInflows[locRel.compNumber, period]
+                            + localReleases[locRel]
+                        )
+
+                inflowVector = allInflows[:, period]
+
+                flowMatrix = np.zeros(
+                    shape=(len(self.compartments), len(self.compartments))
+                )
+                np.fill_diagonal(flowMatrix, 1)
+
+                for compartment in self.flowCompartments:
+                    for trans in compartment.transfers:
+                        flowMatrix[trans.target.compNumber, compartment.compNumber] = (
+                            -trans.getCurrentTC() * compartment.immediateReleaseRate
+                        )
+                solutionVector = la.solve(flowMatrix, inflowVector)
+
+                for i in self.compartments:
+                    i.logFlow(1, period, solutionVector[i.compNumber])
+
+                for i in self.sinks:
+                    i.storeMaterial(1, period, solutionVector[i.compNumber])
+
+        print("\nCheck complete\n-----------------------\n")

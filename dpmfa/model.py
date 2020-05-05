@@ -70,6 +70,11 @@ class Model(object):
             list of all compartments - Flow Compartments, Sinks and Stocks of \
             the model
         """
+        if len([comp.name for comp in compartmentList]) != len(
+            set([comp.name for comp in compartmentList])
+        ):
+            print("Error: all compartment names are not unique")
+
         if all(isinstance(comp, cp.Compartment) for comp in compartmentList):
             self.compartments = compartmentList
         else:
@@ -84,6 +89,10 @@ class Model(object):
         ----------------
         compartment: component.Compartment
         """
+
+        if compartment.name in [comp.name for comp in self.compartments]:
+            print("Error: all compartment names are not unique")
+
         if isinstance(compartment, cp.Compartment):
             self.compartments.append(compartment)
         else:
@@ -112,6 +121,8 @@ class Model(object):
         inflow: components.ExternalInflow
             an external source
         """
+        # OPEN QUESTION: can there be more than one inflow per comp?
+        # if not, test here to avoid errors later on
         if isinstance(inflow, cp.ExternalInflow):
             self.inflows.append(inflow)
         else:
@@ -139,6 +150,8 @@ class Model(object):
         seed: int
             the seed value
         """
+        if not isinstance(seed, int):
+            print("Error: 'seed' needs to be an int")
         self.seed = seed
         nr.seed(seed)
 
@@ -155,11 +168,18 @@ class Model(object):
             transfer to be added
         """
         if isinstance(transfer, cp.Transfer):
-            compartment = next(
-                (comp for comp in self.compartments if comp.name == compartmentName),
-                None,
-            )
-            compartment.transfers.append(transfer)
+            if compartmentName in [comp.name for comp in self.compartments]:
+                compartment = next(
+                    (
+                        comp
+                        for comp in self.compartments
+                        if comp.name == compartmentName
+                    ),
+                    None,
+                )
+                compartment.transfers.append(transfer)
+            else:
+                print("Error: Compartment is not in compartment list")
         else:
             print("Error: use the 'Transfer' class")
 
@@ -176,9 +196,13 @@ class Model(object):
             the release strategy
 
         """
+        if isinstance(releaseStrategy, cp.LocalRelease):
+            print("Error: the releaseStrategy is not a 'LocalRelease'.")
+
         stock = next(
             (comp for comp in self.compartments if comp.name == stockName), None
         )
+
         if stock != None:
             stock.releaseStrategy = releaseStrategy
         else:
@@ -222,7 +246,7 @@ class Model(object):
         if not self.inflows:
             print("Error: No model inflow defined")
 
-    def statusModel(self):
+    def debugModel(self):
         """
         Prints out a summary of the existing transfers in the model.
         """
@@ -230,24 +254,83 @@ class Model(object):
         print("-----------------------")
         print("Printing out current model content.")
         print(
-            "If running statusModel fails, try running checkModelValidity for diagnostics."
+            "If running debugModel fails, there is an error in the model set-up. Try running checkModelValidity for diagnostics."
         )
         print("-----------------------")
+
         for comp in self.compartments:
+
             if isinstance(comp, cp.Stock):
-                print(str(comp.name) + " is a Stock compartment.")
-                transferList = comp.transfers
-                for trans in transferList:
-                    print("--> " + str(trans.target.name))
+                print("\n" + str(comp.name) + " is a Stock compartment.")
 
             elif isinstance(comp, cp.FlowCompartment):
-                print(str(comp.name) + " is a Flow compartment.")
-                transferList = comp.transfers
-                for trans in transferList:
-                    print("--> " + str(trans.target.name))
+                print("\n" + str(comp.name) + " is a Flow compartment.")
 
             elif isinstance(comp, cp.Sink):
-                print(str(comp.name) + " is a Sink compartment.")
+                print("\n" + str(comp.name) + " is a Sink compartment.")
+
+            if isinstance(comp, cp.Stock) or isinstance(comp, cp.FlowCompartment):
+                for trans in comp.transfers:
+                    print("--> " + str(trans.target.name) + ": ", end="")
+
+                    if isinstance(trans, cp.Transfer):
+
+                        if isinstance(trans, cp.ConstTransfer):
+                            print(
+                                "ConstTransfer (value:"
+                                + str(trans.value)
+                                + ", priority: "
+                                + str(trans.priority)
+                                + ")"
+                            )
+
+                        elif isinstance(trans, cp.StochasticTransfer):
+                            print(
+                                "StochasticTransfer (function:"
+                                + str(trans.function)
+                                + ", parameters: "
+                                + str(trans.parameters)
+                                + ", priority: "
+                                + str(trans.priority)
+                                + ")"
+                            )
+
+                        elif isinstance(trans, cp.TimeDependentDistributionTransfer):
+                            print(
+                                "TimeDependentDistributionTransfer (list length:"
+                                + str(len(trans.transfer_distribution_list))
+                                + ", priority: "
+                                + str(trans.priority)
+                                + ")"
+                            )
+
+                        elif isinstance(trans, cp.TimeDependentListTransfer):
+                            print(
+                                "TimeDependentListTransfer (list length:"
+                                + str(len(trans.transfer_list))
+                                + ", priority: "
+                                + str(trans.priority)
+                                + ")"
+                            )
+
+                        elif isinstance(trans, cp.RandomChoiceTransfer):
+                            print(
+                                "RandomChoiceTransfer (sample length:"
+                                + str(len(trans.sample))
+                                + ", priority: "
+                                + str(trans.priority)
+                                + ")"
+                            )
+
+                        elif isinstance(trans, cp.AggregatedTransfer):
+                            print(
+                                "AggregatedTransfer (priority: "
+                                + str(trans.priority)
+                                + ")"
+                            )
+
+                    else:
+                        print(" Error: is not a 'Transfer'!")
 
         print("-----------------------")
         print("")

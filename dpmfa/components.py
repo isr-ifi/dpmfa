@@ -15,6 +15,8 @@ need to be parametrized to fit the specific system behavior.
 import numpy as np
 from functools import reduce
 
+TYPECHECKING = True
+
 
 class Compartment(object):
     """ A compartment is a distinct area of the investigated system.
@@ -27,7 +29,7 @@ class Compartment(object):
     """
 
     def __init__(self, name, logInflows, categories):
-        self.compNumber = "not defined"
+        self.compNumber = "not defined"  # used in simulator
         self.name = name
         self.logInflows = logInflows
         self.categories = categories
@@ -42,6 +44,11 @@ class Compartment(object):
         if flow record is set, a matrix is initialized to log all flows to the
         compartment
         """
+        if TYPECHECKING:
+            if not isinstance(runs, int):
+                raise TypeError("runs must be set to an integer")
+            if not isinstance(periods, int):
+                raise TypeError("int must be set to an integer")
         if self.logInflows:
             self.inflowRecord = np.zeros((runs, periods))
 
@@ -49,6 +56,12 @@ class Compartment(object):
         """
         logs the inflow to the compartment
         """
+        if TYPECHECKING:
+            if not isinstance(run, int):
+                raise TypeError("runs must be set to an integer")
+            if not isinstance(period, int):
+                raise TypeError("period must be set to an integer")
+        # OPEN QUESTION: how should amt be tested? numerical?
         if self.logInflows:
             self.inflowRecord[run, period] = amt
 
@@ -81,6 +94,19 @@ class FlowCompartment(Compartment):
         adjustOutgoingTCs=True,
         categories=[],
     ):
+        if TYPECHECKING:
+            if not isinstance(name, str):
+                raise TypeError("name must be set to a string")
+            if not isinstance(transfers, list):
+                raise TypeError("transfers must be set to a list of Transfers")
+            if not isinstance(logInflows, bool):
+                raise TypeError("logInflows must be set to a boolean")
+            if not isinstance(logOutflows, bool):
+                raise TypeError("logOutflows must be set to a boolean")
+            if not isinstance(adjustOutgoingTCs, bool):
+                raise TypeError("adjustOutgoingTCs must be set to a boolean")
+            if not isinstance(categories, list) and not isinstance(categories, str):
+                raise TypeError("categories must be set to a string or list of strings")
 
         super(FlowCompartment, self).__init__(name, logInflows, categories)
         self.transfers = transfers
@@ -195,6 +221,13 @@ class Sink(Compartment):
     """
 
     def __init__(self, name, logInflows=False, categories=[]):
+        if TYPECHECKING:
+            if not isinstance(name, str):
+                raise TypeError("name must be set to a string")
+            if not isinstance(logInflows, bool):
+                raise TypeError("logInflows must be set to a boolean")
+            if not isinstance(categories, list) and not isinstance(categories, str):
+                raise TypeError("categories must be set to a string or list of strings")
         super(Sink, self).__init__(name, logInflows, categories)
 
     def initInventory(self, runs, periods):
@@ -244,7 +277,22 @@ class Stock(FlowCompartment, Sink):
         logImmediateFlows=False,
         categories=[],
     ):
-        super(Stock, self).__init__(name, transfers, logInflows, categories)
+        if TYPECHECKING:
+            if not isinstance(name, str):
+                raise TypeError("name must be set to a string")
+            if not isinstance(transfers, list):
+                raise TypeError("transfers must be set to a list of Transfers")
+            if not isinstance(logInflows, bool):
+                raise TypeError("logInflows must be set to a boolean")
+            if not isinstance(logOutflows, bool):
+                raise TypeError("logOutflows must be set to a boolean")
+            if not isinstance(logImmediateFlows, bool):
+                raise TypeError("logImmediateFlows must be set to a boolean")
+            if not isinstance(categories, list) and not isinstance(categories, str):
+                raise TypeError("categories must be set to a string or list of strings")
+        super(Stock, self).__init__(
+            name, transfers, logInflows, logOutflows, True, categories
+        )
         self.localRelease = localRelease
         self.logOutflows = logOutflows
         self.logImmediateFlows = logImmediateFlows
@@ -469,6 +517,13 @@ class ConstTransfer(Transfer):
     """
 
     def __init__(self, value, target, priority=1):
+        if TYPECHECKING:
+            if not isinstance(value, float) or not isinstance(value, int):
+                raise TypeError("value must be set to a number")
+            if not isinstance(target, Compartment):
+                raise TypeError("target must be set to a compartment")
+            if not isinstance(priority, int):
+                raise TypeError("priority must be set to an integer")
         super(ConstTransfer, self).__init__(target, priority)
         self.value = value
         self.currentTC = value
@@ -498,6 +553,12 @@ class StochasticTransfer(Transfer):
     """
 
     def __init__(self, function, parameters, target, priority=1):
+        if TYPECHECKING:
+            # OPEN QUESTION: how should the function and parameters be tested?
+            if not isinstance(target, Compartment):
+                raise TypeError("target must be set to a compartment")
+            if not isinstance(priority, int):
+                raise TypeError("priority must be set to an integer")
         super(StochasticTransfer, self).__init__(target, priority)
         self.function = function
         self.parameters = parameters
@@ -527,7 +588,7 @@ class TransferDistribution:
     """
 
     def __init__(self, function, parameters):
-
+        # OPEN QUESTION: how should the function and parameters be tested?
         self.function = function
         self.parameters = parameters
 
@@ -548,6 +609,9 @@ class TransferConstant:
     """
 
     def __init__(self, value):
+        if TYPECHECKING:
+            if not isinstance(value, float) or not isinstance(value, int):
+                raise TypeError("value must be set to a number")
         self.value = value
 
     def sampleTC(self):
@@ -572,6 +636,15 @@ class TimeDependentDistributionTransfer(Transfer):
     """
 
     def __init__(self, transfer_distribution_list, target, owning_comp, priority=1):
+        if TYPECHECKING:
+            if not isinstance(transfer_distribution_list, list):
+                raise TypeError("transfer_distribution_list must be set to a list")
+            if not isinstance(target, Compartment):
+                raise TypeError("target must be set to a compartment")
+            if not isinstance(owning_comp, Compartment):
+                raise TypeError("owning_comp must be set to a compartment")
+            if not isinstance(priority, int):
+                raise TypeError("priority must be set to an integer")
         super(TimeDependentDistributionTransfer, self).__init__(target, priority)
         self.transfer_distribution_list = transfer_distribution_list
         self.transfer_list = []
@@ -610,6 +683,17 @@ class TimeDependentListTransfer(Transfer):
     """
 
     def __init__(self, transfer_list, target, owning_comp, priority=1):
+        if TYPECHECKING:
+            if not isinstance(transfer_list, list):
+                raise TypeError(
+                    "transfer_list must be set to a list of Transfer elements"
+                )
+            if not isinstance(target, Compartment):
+                raise TypeError("target must be set to a compartment")
+            if not isinstance(owning_comp, Compartment):
+                raise TypeError("owning_comp must be set to a compartment")
+            if not isinstance(priority, int):
+                raise TypeError("priority must be set to an integer")
         super(TimeDependentListTransfer, self).__init__(target, priority)
         self.transfer_list = transfer_list
         self.owning_comp = owning_comp
@@ -640,6 +724,13 @@ class RandomChoiceTransfer(Transfer):
     """
 
     def __init__(self, sample, target, priority=1):
+        if TYPECHECKING:
+            if not isinstance(sample, list):
+                raise TypeError("sample must be set to a list of values")
+            if not isinstance(target, Compartment):
+                raise TypeError("target must be set to a compartment")
+            if not isinstance(priority, int):
+                raise TypeError("priority must be set to an integer")
         super(RandomChoiceTransfer, self).__init__(target, priority)
         self.sample = sample
 
@@ -655,10 +746,10 @@ class AggregatedTransfer(Transfer):
 
     Parameters:
     ----------------
-    partialDistributions: list<Transfer>
+    singleTransfers: list<Transfer>
         a list of SochasticTransfers and/or RandomChoiceTransfers to be \
         considered in the combined distribution
-    weightingFactors: list<float>
+    weights: list<float>
         list of weighting factors
     target: components.Compartment
         specifies the target compartment of the transfer
@@ -816,7 +907,6 @@ class ExternalListInflow(ExternalInflow):
         self.inflowList = inflowList
 
         for i in range(len(self.inflowList)):
-            #!port long doesn't exist in python 3
             if isinstance(self.inflowList[i], (int, float, list)):
                 self.inflowList[i] = StochasticFunctionInflow(self.inflowList[i])
 
