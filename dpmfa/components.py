@@ -518,7 +518,7 @@ class ConstTransfer(Transfer):
 
     def __init__(self, value, target, priority=1):
         if TYPECHECKING:
-            if not isinstance(value, float) or not isinstance(value, int):
+            if not isinstance(value, float) and not isinstance(value, int):
                 raise TypeError("value must be set to a number")
             if not isinstance(target, Compartment):
                 raise TypeError("target must be set to a compartment")
@@ -610,7 +610,7 @@ class TransferConstant:
 
     def __init__(self, value):
         if TYPECHECKING:
-            if not isinstance(value, float) or not isinstance(value, int):
+            if not isinstance(value, float) and not isinstance(value, int):
                 raise TypeError("value must be set to a number")
         self.value = value
 
