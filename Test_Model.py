@@ -99,8 +99,23 @@ inflow2.transfers = [
     cp.ConstTransfer(1, sink3, priority=1),
 ]
 
+# flow1.transfers = [
+#    cp.StochasticTransfer(nr.triangular, [0.4, 0.5, 0.6], stock1, priority=2),
+#    cp.ConstTransfer(1, sink2, priority=1),
+# ]
+
 flow1.transfers = [
-    cp.StochasticTransfer(nr.triangular, [0.4, 0.5, 0.6], stock1, priority=2),
+    cp.TimeDependentDistributionTransfer(
+        [
+            cp.TransferDistribution(nr.triangular, [0.05, 0.1, 0.15]),
+            cp.TransferDistribution(nr.triangular, [0.07, 0.15, 0.23]),
+            cp.TransferDistribution(nr.triangular, [0.1, 0.2, 0.3]),
+            cp.TransferDistribution(nr.triangular, [0.2, 0.4, 0.6]),
+            cp.TransferDistribution(nr.triangular, [0.25, 0.5, 0.75]),
+        ],
+        stock1,
+        priority=2,
+    ),
     cp.ConstTransfer(1, sink2, priority=1),
 ]
 

@@ -3,3 +3,4 @@ htmlcov/
 bak/
 __pycache__/
 *.csv
+experiment_output/

@@ -634,7 +634,7 @@ class TimeDependentDistributionTransfer(Transfer):
             a higher priority excludes the value from adjustment
     """
 
-    def __init__(self, transfer_distribution_list, target, owning_comp, priority=1):
+    def __init__(self, transfer_distribution_list, target, priority=1):
         if TYPECHECKING:
             if not isinstance(transfer_distribution_list, list):
                 raise TypeError("transfer_distribution_list must be set to a list")
@@ -642,14 +642,11 @@ class TimeDependentDistributionTransfer(Transfer):
             #                raise TypeError("transfer_list must be set to a list of TransferDistribution elements")
             if not isinstance(target, Compartment):
                 raise TypeError("target must be set to a compartment")
-            if not isinstance(owning_comp, Compartment):
-                raise TypeError("owning_comp must be set to a compartment")
             if not isinstance(priority, int):
                 raise TypeError("priority must be set to an integer")
         super(TimeDependentDistributionTransfer, self).__init__(target, priority)
         self.transfer_distribution_list = transfer_distribution_list
         self.transfer_list = []
-        self.owning_comp = owning_comp
 
     def sampleTC(self):
         self.transfer_list = []
@@ -683,7 +680,7 @@ class TimeDependentListTransfer(Transfer):
 
     """
 
-    def __init__(self, transfer_list, target, owning_comp, priority=1):
+    def __init__(self, transfer_list, target, priority=1):
         if TYPECHECKING:
             if not isinstance(transfer_list, list):
                 raise TypeError(
@@ -691,13 +688,10 @@ class TimeDependentListTransfer(Transfer):
                 )
             if not isinstance(target, Compartment):
                 raise TypeError("target must be set to a compartment")
-            if not isinstance(owning_comp, Compartment):
-                raise TypeError("owning_comp must be set to a compartment")
             if not isinstance(priority, int):
                 raise TypeError("priority must be set to an integer")
         super(TimeDependentListTransfer, self).__init__(target, priority)
         self.transfer_list = transfer_list
-        self.owning_comp = owning_comp
 
     def sampleTC(self):
         """ Randomly assigns one value from the sample as current TC"""

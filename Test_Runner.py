@@ -33,7 +33,7 @@ Tperiods = 5
 Speriod = 0
 
 # number of runs, determines the precision of the results
-RUNS = 10
+RUNS = 1000
 
 ###############################################################################
 
