@@ -61,7 +61,7 @@ class Compartment(object):
                 raise TypeError("runs must be set to an integer")
             if not isinstance(period, int):
                 raise TypeError("period must be set to an integer")
-        # OPEN QUESTION: how should amt be tested? numerical?
+            # OPEN QUESTION: how should amt be tested? numerical?
         if self.logInflows:
             self.inflowRecord[run, period] = amt
 
@@ -290,9 +290,8 @@ class Stock(FlowCompartment, Sink):
                 raise TypeError("logImmediateFlows must be set to a boolean")
             if not isinstance(categories, list) and not isinstance(categories, str):
                 raise TypeError("categories must be set to a string or list of strings")
-        super(Stock, self).__init__(
-            name, transfers, logInflows, logOutflows, True, categories
-        )
+        super(Stock, self).__init__(name, transfers, logInflows, categories=categories)
+
         self.localRelease = localRelease
         self.logOutflows = logOutflows
         self.logImmediateFlows = logImmediateFlows
@@ -639,6 +638,8 @@ class TimeDependentDistributionTransfer(Transfer):
         if TYPECHECKING:
             if not isinstance(transfer_distribution_list, list):
                 raise TypeError("transfer_distribution_list must be set to a list")
+            #            if any([not isinstance(t,TransferDistribution) for t in transfer_list]):
+            #                raise TypeError("transfer_list must be set to a list of TransferDistribution elements")
             if not isinstance(target, Compartment):
                 raise TypeError("target must be set to a compartment")
             if not isinstance(owning_comp, Compartment):
@@ -657,7 +658,7 @@ class TimeDependentDistributionTransfer(Transfer):
         for d in self.transfer_distribution_list:
             self.transfer_list.append(
                 d.sampleTC()
-            )  # creates a list of sampeled values which will be attributed to each period
+            )  # creates a list of sampled values which will be attributed to each period
 
     def updateTC(self, period):
         self.currentTC = self.transfer_list[period]
