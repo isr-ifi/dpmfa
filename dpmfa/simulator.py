@@ -381,7 +381,7 @@ class Simulator(object):
             for infl in self.inflows:
                 print(
                     "Checking starting inflow for compartment "
-                    + str(infl.target.name)
+                    + str(infl.target)
                     + "..."
                 )
                 infl.sampleValues()
@@ -407,7 +407,7 @@ class Simulator(object):
                     sink.updateInventory(1, period)
 
                 for inflow in self.inflows:
-                    print("Updating inflow " + str(infl.target.name) + "...")
+                    print("Updating inflow " + str(infl.target) + "...")
                     allInflows[
                         self.compartments.index(inflow.target), period
                     ] = allInflows[

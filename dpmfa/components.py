@@ -720,8 +720,8 @@ class RandomChoiceTransfer(Transfer):
 
     def __init__(self, sample, target, priority=1):
         if TYPECHECKING:
-            if not isinstance(sample, list):
-                raise TypeError("sample must be set to a list of values")
+            if not isinstance(sample, list) and not isinstance(sample, np.ndarray):
+                raise TypeError("sample must be set to a list of values or numpy array")
             if not isinstance(target, Compartment):
                 raise TypeError("target must be set to a compartment")
             if not isinstance(priority, int):
