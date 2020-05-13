@@ -595,7 +595,7 @@ class TransferDistribution:
         """ samples a random value from the probability distribution as current
         TC
         """
-        return self.function(*self.parameters)
+        return self.function(*self.parameters)[0]
 
 
 class TransferConstant:
@@ -697,7 +697,7 @@ class TimeDependentListTransfer(Transfer):
         """ Randomly assigns one value from the sample as current TC"""
 
     def updateTC(self, period):
-        self.currentTC = self.transfer_list[period]
+        self.currentTC = self.transfer_list[period].sampleTC()
 
 
 ###########################################################################################
