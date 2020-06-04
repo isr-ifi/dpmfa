@@ -4,7 +4,8 @@ Created on Wed Feb 12 14:56:22 2014
 
 @author: Klaus Bornhöft
 
-Modified by Sana Rajkovic, Véronique Adam, Joao Gonçalves, Qie Qu and Delphine Kawecki
+Modified by Sana Rajkovic, Delphine Kawecki, Véronique Adam and João Gonçalves
+Other contributors: Maciej Kawecki
 
 The components module contains model elements that are necessary to implement a
 Probabilistic Material Flow Model. To represent the system, the model elements
@@ -177,7 +178,7 @@ class FlowCompartment(Compartment):
         tcSum = sum(t.currentTC for t in self.transfers)
         currentPriority = min(t.priority for t in self.transfers)
 
-        while round(tcSum, 6) != 1:
+        while np.round(tcSum, 6) != 1:
 
             adjustableTransfers = [
                 t for t in self.transfers if t.priority == currentPriority
@@ -192,7 +193,7 @@ class FlowCompartment(Compartment):
                 adjustableTransfers[i].currentTC = changedTCs[i]
 
             tcSum = sum(t.currentTC for t in self.transfers)
-            tcSum = round(tcSum, 6)
+            tcSum = np.round(tcSum, 6)
             currentPriority = currentPriority + 1
 
     def __normListSumTo(self, L, sumTo=1):
@@ -531,6 +532,10 @@ class ConstTransfer(Transfer):
         """ assign the constant value as current TC """
         self.currentTC = self.value
 
+    def updateTC(self, period):
+        # needed so it can handle changing parallel time dependent TCs
+        self.currentTC = self.value
+
 
 class StochasticTransfer(Transfer):
     """ A Transfer Coefficient determined by an underlying probability \
@@ -568,6 +573,10 @@ class StochasticTransfer(Transfer):
         """
         self.currentTC = self.function(*self.parameters)
 
+    def updateTC(self, period):
+        # needed so it can handle changing parallel time dependent TCs
+        self.currentTC = self.function(*self.parameters)
+
 
 ############################### Time 'dependent' classes ########################
 
@@ -595,7 +604,7 @@ class TransferDistribution:
         """ samples a random value from the probability distribution as current
         TC
         """
-        return self.function(*self.parameters)[0]
+        return self.function(*self.parameters)
 
 
 class TransferConstant:
@@ -647,6 +656,8 @@ class TimeDependentDistributionTransfer(Transfer):
         super(TimeDependentDistributionTransfer, self).__init__(target, priority)
         self.transfer_distribution_list = transfer_distribution_list
         self.transfer_list = []
+        # need a currentTC != 0 to start the simulator (errors if only TimeDependentDistributionTransfer)
+        self.currentTC = self.transfer_distribution_list[0].sampleTC()
 
     def sampleTC(self):
         self.transfer_list = []
@@ -692,12 +703,14 @@ class TimeDependentListTransfer(Transfer):
                 raise TypeError("priority must be set to an integer")
         super(TimeDependentListTransfer, self).__init__(target, priority)
         self.transfer_list = transfer_list
+        # need a currentTC != 0 to start the simulator (errors if only TimeDependentListTransfer)
+        self.currentTC = self.transfer_list[0]
 
     def sampleTC(self):
         """ Randomly assigns one value from the sample as current TC"""
 
     def updateTC(self, period):
-        self.currentTC = self.transfer_list[period].sampleTC()
+        self.currentTC = self.transfer_list[period]
 
 
 ###########################################################################################
@@ -733,6 +746,10 @@ class RandomChoiceTransfer(Transfer):
         """ Randomly assigns one value from the sample as current TC"""
         self.currentTC = np.random.choice(self.sample)
 
+    def updateTC(self, period):
+        # needed so it can handle changing parallel time dependent TCs
+        self.currentTC = np.random.choice(self.sample)
+
 
 class AggregatedTransfer(Transfer):
     """ A Transfer Coefficient from a combined set of several given samples \
@@ -762,6 +779,17 @@ class AggregatedTransfer(Transfer):
             self.weights = [1] * len(singleTransfers)
 
     def sampleTC(self):
+        cs = np.cumsum(self.weights)  # An array of the weights, cumulatively summed.
+        total = sum(self.weights)
+        ind = sum(
+            cs < np.random.uniform(0, total)
+        )  # Find the index of the first weight over a random value.
+        transfer = self.singleTransfers[ind]
+        transfer.sampleTC()
+        self.currentTC = transfer.getCurrentTC()
+
+    def updateTC(self, period):
+        # needed so it can handle changing parallel time dependent TCs
         cs = np.cumsum(self.weights)  # An array of the weights, cumulatively summed.
         total = sum(self.weights)
         ind = sum(

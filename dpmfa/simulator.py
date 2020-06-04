@@ -4,7 +4,8 @@ Created on Tue Mar 04 17:22:50 2014
 
 @author: Klaus Bornhöft
 
-Modified by Sana Rajkovic, Véronique Adam, Joao Gonçalves, Qie Qu and Delphine Kawecki
+Modified by Sana Rajkovic, Delphine Kawecki, Véronique Adam and João Gonçalves
+Other contributors: Maciej Kawecki
 
 The Simulator class provides a framework to perform simulation experiments on a
 Dynamic Probabilistic Material Flow Model.
@@ -404,7 +405,7 @@ class Simulator(object):
 
                 for sink in self.sinks:
                     print("Updating sink " + str(sink.name) + "...")
-                    sink.updateInventory(1, period)
+                    sink.updateInventory(0, period)
 
                 for inflow in self.inflows:
                     print("Updating inflow " + str(infl.target) + "...")
@@ -418,7 +419,7 @@ class Simulator(object):
 
                 for stock in self.stocks:
                     print("Updating stock " + str(stock.name) + "...")
-                    localReleases = stock.releaseMaterial(1, period)
+                    localReleases = stock.releaseMaterial(0, period)
                     for locRel in localReleases.keys():
                         allInflows[locRel.compNumber, period] = (
                             allInflows[locRel.compNumber, period]
@@ -440,9 +441,9 @@ class Simulator(object):
                 solutionVector = la.solve(flowMatrix, inflowVector)
 
                 for i in self.compartments:
-                    i.logFlow(1, period, solutionVector[i.compNumber])
+                    i.logFlow(0, period, solutionVector[i.compNumber])
 
                 for i in self.sinks:
-                    i.storeMaterial(1, period, solutionVector[i.compNumber])
+                    i.storeMaterial(0, period, solutionVector[i.compNumber])
 
         print("\nCheck complete\n-----------------------\n")
