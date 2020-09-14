@@ -11,10 +11,12 @@ The Simulator class provides a framework to perform simulation experiments on a
 Dynamic Probabilistic Material Flow Model.
 """
 
+import math
+
 import numpy as np
 import numpy.linalg as la
+
 from . import components as cp
-import math
 
 
 class Simulator(object):
@@ -268,7 +270,7 @@ class Simulator(object):
         allFlows = {}
         for flow in catFlows:
             for name in flow.outflowRecord:
-                if allFlows.has_key(name):
+                if allFlows in (name):
                     allFlows[name] = allFlows[name] + flow.outflowRecord[name]
                 else:
                     allFlows[name] = flow.outflowRecord[name]
@@ -307,7 +309,7 @@ class Simulator(object):
             ) in (
                 comp.outflowRecord
             ):  # outflowRecord is a dictionary containing a list(outputflows) of keys with value in matrix
-                if combinedOutflow.has_key(name):
+                if combinedOutflow in (name):
                     combinedOutflow[name] = (
                         combinedOutflow[name] + comp.outflowRecord[name]
                     )
@@ -371,7 +373,7 @@ class Simulator(object):
 
         # first check that the number of periods is already included in the
         # simulator object, otherwise stop
-        if self.numPeriods == None:
+        if self.numPeriods is None:
             raise TypeError("missing the number of periods")
 
         else:
