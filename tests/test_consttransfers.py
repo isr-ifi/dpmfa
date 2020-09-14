@@ -13,4 +13,6 @@ def test_compartments_typechecking():
         ConstTransfer("1.0", c)
     with pytest.raises(TypeError):
         ConstTransfer(1.0, 0)
+    with pytest.raises(TypeError):
+        ConstTransfer(1.0, c, priority="string")
     ConstTransfer(1.0, c)
