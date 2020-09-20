@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 
-
-###############################################################################
-
-import os
 import csv
+import os
+import sys
+
+sys.path.insert(1, os.path.join(sys.path[0], ".."))
+
 import numpy as np
 
 from dpmfa import simulator as sc
-import Test_Model
+import model
+from helpers import check_exp_dir
 
-###############################################################################
+
+check_exp_dir()
 
 # define model
-simpleModel = Test_Model.simpleModel
+simpleModel = model.simpleModel
 
 # check validity
 simpleModel.checkModelValidity()

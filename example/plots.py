@@ -4,7 +4,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-import Test_Runner as res
+import runner as res
 
 
 ### PLOT ALL OUTFLOWS #########################################################
