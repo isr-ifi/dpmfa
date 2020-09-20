@@ -12,6 +12,7 @@ Dynamic Probabilistic Material Flow Model.
 """
 
 import math
+import logging as log
 
 import numpy as np
 import numpy.linalg as la
@@ -84,13 +85,13 @@ class Simulator(object):
         """ performs the simulation on the model with regard to the given
         parameters
         """
-        print("")
-        print("Start Simulation")
-        print("Model: " + str(self.model.name))
-        print("Seed Value: " + str(self.model.seed))
-        print("Number of Simulation Runs: " + str(self.numRuns))
-        print("Number of Periods: " + str(self.numPeriods))
-        print("Progress (in percent):")
+        log.info("")
+        log.info("Start Simulation")
+        log.info("Model: " + str(self.model.name))
+        log.info("Seed Value: " + str(self.model.seed))
+        log.info("Number of Simulation Runs: " + str(self.numRuns))
+        log.info("Number of Periods: " + str(self.numPeriods))
+        log.info("Progress (in percent):")
 
         currentStep = 1
 
@@ -154,13 +155,13 @@ class Simulator(object):
                     i.storeMaterial(run, period, solutionVector[i.compNumber])
 
             if run == currentStepRun:
-                print(str(currentStep) + ", ", end="")
+                log.info(str(currentStep) + ", ", end="")
                 currentStepRun += stepSize
                 currentStep += 1
 
-        print("")
-        print("Simulation complete")
-        print("")
+        log.info("")
+        log.info("Simulation complete")
+        log.info("")
 
     def getAllStockedMaterial(self):
         """
@@ -369,7 +370,7 @@ class Simulator(object):
         checks whether all the data can be obtained from the model and so that
         bugs during the actual simulation can be prevented
         """
-        print("\n-----------------------\nAnalyzing simulator object\n")
+        log.info("\n-----------------------\nAnalyzing simulator object\n")
 
         # first check that the number of periods is already included in the
         # simulator object, otherwise stop
@@ -378,11 +379,13 @@ class Simulator(object):
 
         else:
             for comp in self.flowCompartments:
-                print("Checking starting TCs for compartment " + str(comp.name) + "...")
+                log.info(
+                    "Checking starting TCs for compartment " + str(comp.name) + "..."
+                )
                 comp.determineTCs(self.useGlobalTCSettings, self.normalizeTCs)
 
             for infl in self.inflows:
-                print(
+                log.info(
                     "Checking starting inflow for compartment "
                     + str(infl.target)
                     + "..."
@@ -390,7 +393,7 @@ class Simulator(object):
                 infl.sampleValues()
 
             for stock in self.stocks:
-                print(
+                log.info(
                     "Checking starting stock for compartment " + str(stock.name) + "..."
                 )
                 stock.determineTCs(self.useGlobalTCSettings, self.normalizeTCs)
@@ -399,18 +402,18 @@ class Simulator(object):
 
             for period in range(self.numPeriods):
 
-                print("\nPeriod " + str(period) + "...")
+                log.info("\nPeriod " + str(period) + "...")
                 # update current period for time dependent transfers of a compartment
                 for comp in self.flowCompartments:
-                    print("Updating compartment mass " + str(comp.name) + "...")
+                    log.info("Updating compartment mass " + str(comp.name) + "...")
                     comp.updateTCs(period)
 
                 for sink in self.sinks:
-                    print("Updating sink " + str(sink.name) + "...")
+                    log.info("Updating sink " + str(sink.name) + "...")
                     sink.updateInventory(0, period)
 
                 for inflow in self.inflows:
-                    print("Updating inflow " + str(infl.target) + "...")
+                    log.info("Updating inflow " + str(infl.target) + "...")
                     allInflows[
                         self.compartments.index(inflow.target), period
                     ] = allInflows[
@@ -420,7 +423,7 @@ class Simulator(object):
                     )
 
                 for stock in self.stocks:
-                    print("Updating stock " + str(stock.name) + "...")
+                    log.info("Updating stock " + str(stock.name) + "...")
                     localReleases = stock.releaseMaterial(0, period)
                     for locRel in localReleases.keys():
                         allInflows[locRel.compNumber, period] = (
@@ -448,4 +451,4 @@ class Simulator(object):
                 for i in self.sinks:
                     i.storeMaterial(0, period, solutionVector[i.compNumber])
 
-        print("\nCheck complete\n-----------------------\n")
+        log.info("\nCheck complete\n-----------------------\n")

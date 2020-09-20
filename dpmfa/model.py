@@ -16,6 +16,8 @@ to comprehend the material flows that lead to a specific accumulation and the
 uncertainty about it.
 """
 
+import logging as log
+
 from . import components as cp
 import numpy.random as nr
 
@@ -51,12 +53,12 @@ class Model(object):
         if all(isinstance(comp, cp.Compartment) for comp in compartments):
             self.compartments = compartments
         else:
-            print("Error: all compartments are not 'Compartment' instances")
+            log.error("All compartments are not 'Compartment' instances")
 
         if all(isinstance(inflow, cp.ExternalInflow) for inflow in inflows):
             self.inflows = inflows
         else:
-            print("Error: all inflows are not 'ExternalInflow' instances")
+            log.error("All inflows are not 'ExternalInflow' instances")
 
         self.seed = 1
         self.categoriesList = []
@@ -74,12 +76,12 @@ class Model(object):
         if len([comp.name for comp in compartmentList]) != len(
             set([comp.name for comp in compartmentList])
         ):
-            print("Error: all compartment names are not unique")
+            log.error("All compartment names are not unique")
 
         if all(isinstance(comp, cp.Compartment) for comp in compartmentList):
             self.compartments = compartmentList
         else:
-            print("Error: all compartments are not 'Compartment' instances")
+            log.error("All compartments are not 'Compartment' instances")
 
     def addCompartment(self, compartment):
         """
@@ -92,12 +94,12 @@ class Model(object):
         """
 
         if compartment.name in [comp.name for comp in self.compartments]:
-            print("Error: all compartment names are not unique")
+            log.error("All compartment names are not unique")
 
         if isinstance(compartment, cp.Compartment):
             self.compartments.append(compartment)
         else:
-            print("Error: use the 'Compartment' class")
+            log.error("Use the 'Compartment' class")
 
     def setInflows(self, inflowList):
         """
@@ -111,7 +113,7 @@ class Model(object):
         if all(isinstance(inflow, cp.ExternalInflow) for inflow in inflowList):
             self.inflows = inflowList
         else:
-            print("Error: all inflows are not 'ExternalInflow' instances")
+            log.error("All inflows are not 'ExternalInflow' instances")
 
     def addInflow(self, inflow):
         """
@@ -127,7 +129,7 @@ class Model(object):
         if isinstance(inflow, cp.ExternalInflow):
             self.inflows.append(inflow)
         else:
-            print("Error: use the 'ExternalInflow' class")
+            log.error("Use the 'ExternalInflow' class")
 
     def updateCompartmentCategories(self):
         """
@@ -152,7 +154,7 @@ class Model(object):
             the seed value
         """
         if not isinstance(seed, int):
-            print("Error: 'seed' needs to be an int")
+            log.error("'seed' needs to be an int")
         self.seed = seed
         nr.seed(seed)
 
@@ -180,9 +182,9 @@ class Model(object):
                 )
                 compartment.transfers.append(transfer)
             else:
-                print("Error: Compartment is not in compartment list")
+                log.error("Compartment is not in compartment list")
         else:
-            print("Error: use the 'Transfer' class")
+            log.error("Use the 'Transfer' class")
 
     def setReleaseStrategy(self, stockName, releaseStrategy):
         """
@@ -198,7 +200,7 @@ class Model(object):
 
         """
         if isinstance(releaseStrategy, cp.LocalRelease):
-            print("Error: the releaseStrategy is not a 'LocalRelease'.")
+            log.error("The releaseStrategy is not a 'LocalRelease'.")
 
         stock = next(
             (comp for comp in self.compartments if comp.name == stockName), None
@@ -207,7 +209,7 @@ class Model(object):
         if stock != None:
             stock.releaseStrategy = releaseStrategy
         else:
-            print("Error: there is no such stock: " + str(stockName))
+            log.error("There is no such stock: " + str(stockName))
 
     def checkModelValidity(self):
         """
@@ -222,12 +224,12 @@ class Model(object):
             if isinstance(comp, cp.FlowCompartment):
                 transferList = comp.transfers
                 if not transferList:
-                    print("Error: no transfers assigned to " + str(comp.name))
+                    log.error("No transfers assigned to " + str(comp.name))
 
                 for trans in transferList:
                     if not isinstance(trans, cp.Transfer):
-                        print(
-                            "Error: invalid transfer from "
+                        log.error(
+                            "Invalid transfer from "
                             + str(comp.name)
                             + ". Please implement using the class 'Transfer' from 'components'."
                         )
@@ -237,47 +239,47 @@ class Model(object):
 
                 release = comp.localRelease
                 if not isinstance(release, cp.LocalRelease):
-                    print(
-                        "Error: local release from stock "
+                    log.error(
+                        "Local release from stock "
                         + str(comp.name)
                         + " not assigned or release not assigned using 'LocalRelease'."
                     )
 
         # test inflows
         if not self.inflows:
-            print("Error: No model inflow defined")
+            log.error("No model inflow defined")
 
     def debugModel(self):
         """
         Prints out a summary of the existing transfers in the model.
         """
-        print("")
-        print("-----------------------")
-        print("Printing out current model content.")
-        print(
+        log.info("")
+        log.info("-----------------------")
+        log.info("Printing out current model content.")
+        log.info(
             "If running debugModel fails, there is an error in the model set-up. Try running checkModelValidity for diagnostics."
         )
-        print("-----------------------")
+        log.info("-----------------------")
 
         for comp in self.compartments:
 
             if isinstance(comp, cp.Stock):
-                print("\n" + str(comp.name) + " is a Stock compartment.")
+                log.info("\n" + str(comp.name) + " is a Stock compartment.")
 
             elif isinstance(comp, cp.FlowCompartment):
-                print("\n" + str(comp.name) + " is a Flow compartment.")
+                log.info("\n" + str(comp.name) + " is a Flow compartment.")
 
             elif isinstance(comp, cp.Sink):
-                print("\n" + str(comp.name) + " is a Sink compartment.")
+                log.info("\n" + str(comp.name) + " is a Sink compartment.")
 
             if isinstance(comp, cp.Stock) or isinstance(comp, cp.FlowCompartment):
                 for trans in comp.transfers:
-                    print("--> " + str(trans.target.name) + ": ", end="")
+                    log.info("--> " + str(trans.target.name) + ": ", end="")
 
                     if isinstance(trans, cp.Transfer):
 
                         if isinstance(trans, cp.ConstTransfer):
-                            print(
+                            log.info(
                                 "ConstTransfer (value:"
                                 + str(trans.value)
                                 + ", priority: "
@@ -286,7 +288,7 @@ class Model(object):
                             )
 
                         elif isinstance(trans, cp.StochasticTransfer):
-                            print(
+                            log.info(
                                 "StochasticTransfer (function:"
                                 + str(trans.function)
                                 + ", parameters: "
@@ -297,7 +299,7 @@ class Model(object):
                             )
 
                         elif isinstance(trans, cp.TimeDependentDistributionTransfer):
-                            print(
+                            log.info(
                                 "TimeDependentDistributionTransfer (list length:"
                                 + str(len(trans.transfer_distribution_list))
                                 + ", priority: "
@@ -306,7 +308,7 @@ class Model(object):
                             )
 
                         elif isinstance(trans, cp.TimeDependentListTransfer):
-                            print(
+                            log.info(
                                 "TimeDependentListTransfer (list length:"
                                 + str(len(trans.transfer_list))
                                 + ", priority: "
@@ -315,7 +317,7 @@ class Model(object):
                             )
 
                         elif isinstance(trans, cp.RandomChoiceTransfer):
-                            print(
+                            log.info(
                                 "RandomChoiceTransfer (sample length:"
                                 + str(len(trans.sample))
                                 + ", priority: "
@@ -324,14 +326,14 @@ class Model(object):
                             )
 
                         elif isinstance(trans, cp.AggregatedTransfer):
-                            print(
+                            log.info(
                                 "AggregatedTransfer (priority: "
                                 + str(trans.priority)
                                 + ")"
                             )
 
                     else:
-                        print(" Error: is not a 'Transfer'!")
+                        log.error("Is not a 'Transfer'!")
 
-        print("-----------------------")
-        print("")
+        log.info("-----------------------")
+        log.info("")
