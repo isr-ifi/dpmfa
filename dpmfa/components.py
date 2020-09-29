@@ -683,8 +683,6 @@ class TimeDependentListTransfer(Transfer):
             list of Single transfer elements for each period
         target: components.Compartment
             specifies the target compartment of the transfer
-        owning_comp: components.Compartment
-            specifies from which compartment the transfer comes from
         priority: integer
             if random values for the transfer coefficients are normalized, \
             a higher priority excludes the value from adjustment
