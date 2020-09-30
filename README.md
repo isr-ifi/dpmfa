@@ -2,27 +2,28 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4059650.svg)](https://doi.org/10.5281/zenodo.4059650)
 
-If you run into any problems please use create a new issue at the [upstream repository](https://github.com/isr-ifi/dpmfa/issues).
+If you run into any problems please create a new issue at the [upstream repository](https://github.com/isr-ifi/dpmfa/issues).
 
 ## Usage example
 
-First, clone the repository:
-
-```bash
-$ git clone <url-of-this-repo>
-```
-
-[Optional] Create a virtual environment for the project:
+0. [Optional] Create a virtual environment for the project:
 ```bash
 $ mkvirtualenv dpmfa
 ```
 
-Install the required dependencies:
+1. Install the package:
+
 ```bash
-$ pip install -r requirements.txt
+$ pip install dpmfa
 ```
 
-Then, run the example:
+2. Download the examples from this repository, then install the required dependencies:
+
+```bash
+$ pip install -r examples/requirements.txt
+```
+
+3. Then, run the example:
 
 ```bash
 $ python example/plots.py
