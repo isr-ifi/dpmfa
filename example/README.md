@@ -23,5 +23,5 @@ $ pip install -r requirements.txt
 $ python plots.py
 ```
 
-You should now have a directory `example_output/` with the results of the
+You should now have a directory `experiment_output/` with the results of the
 example simulation.

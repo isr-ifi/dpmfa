@@ -17,10 +17,10 @@ $ mkvirtualenv dpmfa
 $ pip install dpmfa
 ```
 
-2. Download the examples from this repository, then install the required dependencies:
+2. Download the example from this repository, then install the required dependencies:
 
 ```bash
-$ pip install -r examples/requirements.txt
+$ pip install -r example/requirements.txt
 ```
 
 3. Then, run the example:
@@ -29,7 +29,7 @@ $ pip install -r examples/requirements.txt
 $ python example/plots.py
 ```
 
-You should now have a directory `example_output/` with the results of the
+You should now have a directory `experiment_output/` with the results of the
 example simulation.
 
 ## Development
