@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb 12 14:56:22 2014
-
-@author: Klaus Bornhöft
-
-Modified by Sana Rajkovic, Delphine Kawecki, Véronique Adam and João Gonçalves
-Other contributors: Maciej Kawecki
-
 The components module contains model elements that are necessary to implement a
 Probabilistic Material Flow Model. To represent the system, the model elements
 need to be parametrized to fit the specific system behavior.

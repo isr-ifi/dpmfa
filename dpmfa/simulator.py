@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 04 17:22:50 2014
-
-@author: Klaus Bornhöft
-
-Modified by Sana Rajkovic, Delphine Kawecki, Véronique Adam and João Gonçalves
-Other contributors: Maciej Kawecki
-
 The Simulator class provides a framework to perform simulation experiments on a
 Dynamic Probabilistic Material Flow Model.
 """

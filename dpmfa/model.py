@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar 05 11:18:47 2014
-
-@author: Klaus Bornhöft
-
-Modified by Sana Rajkovic, Delphine Kawecki, Véronique Adam and João Gonçalves
-Other contributors: Maciej Kawecki
-
 The Model module contains the class model to define simulation models for
 dynamic probabilistic material flow modeling and simulation.
 
