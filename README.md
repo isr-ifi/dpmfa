@@ -1,6 +1,8 @@
 # DPMFA
 
-Under active development, if you run into any problems please use create a new issue at the [upstream repository](https://github.com/isr-ifi/dpmfa/issues).
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4059650.svg)](https://doi.org/10.5281/zenodo.4059650)
+
+If you run into any problems please use create a new issue at the [upstream repository](https://github.com/isr-ifi/dpmfa/issues).
 
 ## Usage example
 
